@@ -4,24 +4,20 @@ import { useState } from "react";
 
 export default function SubmitPage() {
   const [transcription, setTranscription] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [result, setResult] = useState<string>("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!transcription.trim() || !apiKey.trim()) return;
+    if (!transcription.trim()) return;
 
     setStatus("submitting");
     setResult("");
 
     try {
-      const res = await fetch("/api/entry", {
+      const res = await fetch("/api/submit", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ transcription }),
       });
 
@@ -50,31 +46,18 @@ export default function SubmitPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="label block mb-1.5">API Key</label>
-          <input
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Your API secret key"
-            className="w-full text-sm font-mono bg-card border border-border rounded-xl px-4 py-3 text-text placeholder:text-secondary focus:outline-none focus:border-accent"
-          />
-        </div>
-
-        <div>
-          <label className="label block mb-1.5">Transcription</label>
-          <textarea
-            value={transcription}
-            onChange={(e) => setTranscription(e.target.value)}
-            placeholder="Paste your voice memo transcription here..."
-            rows={10}
-            className="w-full text-sm font-sans bg-card border border-border rounded-xl px-4 py-3 text-text placeholder:text-secondary focus:outline-none focus:border-accent resize-y leading-relaxed"
-          />
-        </div>
+        <textarea
+          value={transcription}
+          onChange={(e) => setTranscription(e.target.value)}
+          placeholder="Paste your voice memo transcription here..."
+          rows={12}
+          autoFocus
+          className="w-full text-sm font-sans bg-card border border-border rounded-xl px-4 py-3 text-text placeholder:text-secondary focus:outline-none focus:border-accent resize-y leading-relaxed"
+        />
 
         <button
           type="submit"
-          disabled={status === "submitting" || !transcription.trim() || !apiKey.trim()}
+          disabled={status === "submitting" || !transcription.trim()}
           className="w-full font-mono text-sm font-medium bg-accent text-white rounded-xl px-4 py-3.5 active:scale-[0.98] transition-all disabled:opacity-40 disabled:active:scale-100"
         >
           {status === "submitting" ? "Processing..." : "Submit & Extract Ideas"}
