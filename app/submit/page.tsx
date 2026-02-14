@@ -1,39 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useProcessing } from "@/lib/processing-context";
 
 export default function SubmitPage() {
   const [transcription, setTranscription] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [result, setResult] = useState<string>("");
+  const { status, submit } = useProcessing();
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!transcription.trim()) return;
-
-    setStatus("submitting");
-    setResult("");
-
-    try {
-      const res = await fetch("/api/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcription }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to submit");
-      }
-
-      const data = await res.json();
-      setStatus("success");
-      setResult(`"${data.title}" — ${data.ideas?.length ?? 0} ideas extracted`);
-      setTranscription("");
-    } catch (err: unknown) {
-      setStatus("error");
-      setResult(err instanceof Error ? err.message : "Something went wrong");
-    }
+    if (!transcription.trim() || status === "submitting") return;
+    submit(transcription);
+    setTranscription("");
   }
 
   return (
@@ -64,19 +42,10 @@ export default function SubmitPage() {
         </button>
       </form>
 
-      {status === "success" && (
-        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-          <p className="text-sm font-mono text-green-700">{result}</p>
-          <a href="/" className="text-sm font-mono text-accent mt-2 inline-block active:opacity-70">
-            View in stream &rarr;
-          </a>
-        </div>
-      )}
-
-      {status === "error" && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-sm font-mono text-red-700">{result}</p>
-        </div>
+      {status === "submitting" && (
+        <p className="text-sm text-secondary font-mono mt-4 text-center">
+          You can navigate away — processing continues in the background.
+        </p>
       )}
     </div>
   );
