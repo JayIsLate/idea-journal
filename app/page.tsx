@@ -1,42 +1,67 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
 import EntryCard from "@/components/EntryCard";
-import { getSupabase } from "@/lib/supabase";
 import { Entry } from "@/lib/types";
+import { useProcessing } from "@/lib/processing-context";
 
-export const dynamic = "force-dynamic";
+export default function HomePage() {
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const { status } = useProcessing();
 
-async function getEntries(): Promise<Entry[]> {
-  try {
-    const supabase = getSupabase();
-    const { data: entries, error: entryError } = await supabase
-      .from("entries")
-      .select("*")
-      .order("day_number", { ascending: false });
-    if (entryError || !entries) return [];
+  const fetchEntries = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    try {
+      const res = await fetch("/api/entries", { cache: "no-store" });
+      if (res.ok) {
+        setEntries(await res.json());
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
-    const { data: ideas } = await supabase.from("ideas").select("*");
+  useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
 
-    return entries.map((entry) => ({
-      ...entry,
-      ideas: (ideas || []).filter((idea) => idea.entry_id === entry.id),
-    })) as Entry[];
-  } catch {
-    return [];
-  }
-}
-
-export default async function HomePage() {
-  const entries = await getEntries();
+  // Refetch when processing completes
+  useEffect(() => {
+    if (status === "success") {
+      fetchEntries();
+    }
+  }, [status, fetchEntries]);
 
   return (
     <div className="max-w-stream mx-auto px-4 sm:px-6">
-      <div className="mb-5">
-        <h1 className="font-mono text-xl sm:text-2xl font-bold">Stream</h1>
-        <p className="text-sm text-secondary mt-1">
-          Morning voice memos, processed and archived
-        </p>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h1 className="font-mono text-xl sm:text-2xl font-bold">Stream</h1>
+          <p className="text-sm text-secondary mt-1">
+            Morning voice memos, processed and archived
+          </p>
+        </div>
+        <button
+          onClick={() => fetchEntries(true)}
+          disabled={refreshing}
+          className={`text-sm font-mono text-secondary px-3 py-2 rounded-lg active:bg-bg transition-all ${
+            refreshing ? "animate-spin" : ""
+          }`}
+        >
+          {refreshing ? "..." : "↻"}
+        </button>
       </div>
 
-      {entries.length === 0 ? (
+      {loading ? (
+        <div className="animate-pulse space-y-3">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-36 bg-border rounded-xl" />
+          ))}
+        </div>
+      ) : entries.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-secondary font-mono text-sm">
             No entries yet. Submit a transcription to get started.
