@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #FAFAFA;
+  --text: #1A1A1A;
+  --secondary: #888888;
+  --accent: #FF4D00;
+  --card: #FFFFFF;
+  --border: #E5E5E5;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .label {
+    font-size: 12px;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
