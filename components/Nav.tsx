@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "Stream" },
   { href: "/grid", label: "Grid" },
   { href: "/ideas", label: "Ideas" },
+  { href: "/submit", label: "+" },
 ];
 
 export default function Nav() {
