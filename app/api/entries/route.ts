@@ -31,7 +31,8 @@ export async function GET(request: NextRequest) {
   const { data: entries, error } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Entries query error:", error);
+    return NextResponse.json({ error: error.message, details: error }, { status: 500 });
   }
 
   // Filter by idea category or status if provided

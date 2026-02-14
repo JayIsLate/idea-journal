@@ -11,7 +11,10 @@ async function getEntries(): Promise<Entry[]> {
       .from("entries")
       .select("*, ideas(*)")
       .order("day_number", { ascending: false });
-    if (error) return [];
+    if (error) {
+      console.error("Home page query error:", error);
+      return [];
+    }
     return data as Entry[];
   } catch {
     return [];
