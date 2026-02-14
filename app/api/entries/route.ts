@@ -48,12 +48,12 @@ export async function GET(request: NextRequest) {
     let filtered = entriesWithIdeas;
     if (category) {
       filtered = filtered.filter((entry) =>
-        entry.ideas.some((idea) => idea.category === category)
+        entry.ideas.some((idea: { category: string }) => idea.category === category)
       );
     }
     if (statusFilter) {
       filtered = filtered.filter((entry) =>
-        entry.ideas.some((idea) => idea.status === statusFilter)
+        entry.ideas.some((idea: { status: string }) => idea.status === statusFilter)
       );
     }
 
