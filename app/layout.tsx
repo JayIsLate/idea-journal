@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import Nav from "@/components/Nav";
 import "./globals.css";
@@ -13,10 +13,22 @@ const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#FF4D00",
+};
+
 export const metadata: Metadata = {
   title: "Idea Journal",
   description: "Morning voice memo journal with AI-powered idea extraction",
-  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Idea Journal",
+  },
 };
 
 export default function RootLayout({
@@ -26,6 +38,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body
         className={`${inter.variable} ${jetbrains.variable} font-sans bg-bg min-h-screen`}
       >
