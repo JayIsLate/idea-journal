@@ -4,53 +4,62 @@ import { getSupabase } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const supabase = getSupabase();
-  const { searchParams } = new URL(request.url);
+  try {
+    const supabase = getSupabase();
+    const { searchParams } = new URL(request.url);
 
-  const category = searchParams.get("category");
-  const status = searchParams.get("status");
-  const tag = searchParams.get("tag");
-  const search = searchParams.get("search");
+    const category = searchParams.get("category");
+    const statusFilter = searchParams.get("status");
+    const tag = searchParams.get("tag");
+    const search = searchParams.get("search");
 
-  // Fetch entries with their ideas
-  let query = supabase
-    .from("entries")
-    .select("*, ideas(*)")
-    .order("day_number", { ascending: false });
+    // Fetch entries
+    let entryQuery = supabase
+      .from("entries")
+      .select("*")
+      .order("day_number", { ascending: false });
 
-  if (tag) {
-    query = query.contains("tags", [tag]);
+    if (tag) {
+      entryQuery = entryQuery.contains("tags", [tag]);
+    }
+
+    if (search) {
+      entryQuery = entryQuery.or(
+        `title.ilike.%${search}%,summary.ilike.%${search}%,raw_transcription.ilike.%${search}%`
+      );
+    }
+
+    const { data: entries, error: entryError } = await entryQuery;
+
+    if (entryError) {
+      return NextResponse.json({ error: entryError.message }, { status: 500 });
+    }
+
+    // Fetch all ideas
+    const { data: ideas } = await supabase.from("ideas").select("*");
+
+    // Attach ideas to entries
+    const entriesWithIdeas = (entries || []).map((entry) => ({
+      ...entry,
+      ideas: (ideas || []).filter((idea) => idea.entry_id === entry.id),
+    }));
+
+    // Filter by idea category or status if provided
+    let filtered = entriesWithIdeas;
+    if (category) {
+      filtered = filtered.filter((entry) =>
+        entry.ideas.some((idea) => idea.category === category)
+      );
+    }
+    if (statusFilter) {
+      filtered = filtered.filter((entry) =>
+        entry.ideas.some((idea) => idea.status === statusFilter)
+      );
+    }
+
+    return NextResponse.json(filtered);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  if (search) {
-    query = query.or(
-      `title.ilike.%${search}%,summary.ilike.%${search}%,raw_transcription.ilike.%${search}%`
-    );
-  }
-
-  const { data: entries, error } = await query;
-
-  if (error) {
-    console.error("Entries query error:", error);
-    return NextResponse.json({ error: error.message, details: error }, { status: 500 });
-  }
-
-  // Filter by idea category or status if provided
-  let filtered = entries || [];
-  if (category) {
-    filtered = filtered.filter((entry) =>
-      entry.ideas?.some(
-        (idea: { category: string }) => idea.category === category
-      )
-    );
-  }
-  if (status) {
-    filtered = filtered.filter((entry) =>
-      entry.ideas?.some(
-        (idea: { status: string }) => idea.status === status
-      )
-    );
-  }
-
-  return NextResponse.json(filtered);
 }

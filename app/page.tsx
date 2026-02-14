@@ -7,15 +7,18 @@ export const dynamic = "force-dynamic";
 async function getEntries(): Promise<Entry[]> {
   try {
     const supabase = getSupabase();
-    const { data, error } = await supabase
+    const { data: entries, error: entryError } = await supabase
       .from("entries")
-      .select("*, ideas(*)")
+      .select("*")
       .order("day_number", { ascending: false });
-    if (error) {
-      console.error("Home page query error:", error);
-      return [];
-    }
-    return data as Entry[];
+    if (entryError || !entries) return [];
+
+    const { data: ideas } = await supabase.from("ideas").select("*");
+
+    return entries.map((entry) => ({
+      ...entry,
+      ideas: (ideas || []).filter((idea) => idea.entry_id === entry.id),
+    })) as Entry[];
   } catch {
     return [];
   }
