@@ -8,7 +8,7 @@ type ProcessingState = {
 };
 
 type ProcessingContextType = ProcessingState & {
-  submit: (transcription: string) => void;
+  submit: (transcription: string, date?: string) => void;
   reset: () => void;
 };
 
@@ -25,13 +25,13 @@ export function ProcessingProvider({ children }: { children: ReactNode }) {
     result: "",
   });
 
-  const submit = useCallback((transcription: string) => {
+  const submit = useCallback((transcription: string, date?: string) => {
     setState({ status: "submitting", result: "" });
 
     fetch("/api/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ transcription }),
+      body: JSON.stringify({ transcription, date }),
     })
       .then(async (res) => {
         if (!res.ok) {

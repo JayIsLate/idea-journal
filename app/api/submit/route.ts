@@ -4,7 +4,7 @@ import { processTranscription } from "@/lib/claude";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { transcription } = body;
+  const { transcription, date } = body;
 
   if (!transcription) {
     return NextResponse.json(
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = getSupabase();
-    const today = new Date().toISOString().split("T")[0];
+    const today = date || new Date().toISOString().split("T")[0];
 
     // Check if there's already an entry for today
     const { data: existingEntry } = await supabase

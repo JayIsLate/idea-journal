@@ -5,12 +5,13 @@ import { useProcessing } from "@/lib/processing-context";
 
 export default function SubmitPage() {
   const [transcription, setTranscription] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
   const { status, submit } = useProcessing();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!transcription.trim() || status === "submitting") return;
-    submit(transcription);
+    submit(transcription, date);
     setTranscription("");
   }
 
@@ -24,6 +25,18 @@ export default function SubmitPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-xs font-mono text-secondary mb-1.5">
+            Voice memo date
+          </label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full text-sm font-mono bg-card border border-border rounded-xl px-4 py-3 text-text focus:outline-none focus:border-accent"
+          />
+        </div>
+
         <textarea
           value={transcription}
           onChange={(e) => setTranscription(e.target.value)}
