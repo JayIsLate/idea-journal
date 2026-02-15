@@ -113,21 +113,6 @@ Include:
 
 Format as clean markdown. Be specific, practical, and motivating.`;
 
-const PLAN_TOOL: Anthropic.Tool = {
-  name: "generate_plan",
-  description: "Generate an actionable plan for an idea",
-  input_schema: {
-    type: "object" as const,
-    properties: {
-      plan: {
-        type: "string",
-        description: "The full plan in markdown format",
-      },
-    },
-    required: ["plan"],
-  },
-};
-
 const SOFTWARE_CATEGORIES = ["product", "technical"];
 
 export async function generateIdeaPlan(idea: {
@@ -146,23 +131,23 @@ export async function generateIdeaPlan(idea: {
     `**Category:** ${idea.category}`,
     idea.action_items?.length ? `**Action Items:** ${idea.action_items.join(", ")}` : "",
     idea.tags?.length ? `**Tags:** ${idea.tags.join(", ")}` : "",
+    "",
+    "Respond with ONLY the plan in markdown. No preamble.",
   ]
     .filter(Boolean)
     .join("\n");
 
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 4096,
+    max_tokens: 2048,
     system: isSoftware ? SOFTWARE_PLAN_PROMPT : NON_SOFTWARE_PLAN_PROMPT,
-    tools: [PLAN_TOOL],
-    tool_choice: { type: "tool", name: "generate_plan" },
     messages: [{ role: "user", content: userMessage }],
   });
 
-  const toolBlock = message.content.find((block) => block.type === "tool_use");
-  if (!toolBlock || toolBlock.type !== "tool_use") {
-    throw new Error("No tool response from Claude");
+  const textBlock = message.content.find((block) => block.type === "text");
+  if (!textBlock || textBlock.type !== "text") {
+    throw new Error("No text response from Claude");
   }
 
-  return (toolBlock.input as { plan: string }).plan;
+  return textBlock.text;
 }
