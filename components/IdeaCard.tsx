@@ -23,6 +23,9 @@ export default function IdeaCard({
   const [status, setStatus] = useState<IdeaStatus>(idea.status);
   const [expanded, setExpanded] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   async function updateStatus(newStatus: IdeaStatus) {
     setUpdating(true);
@@ -38,6 +41,36 @@ export default function IdeaCard({
     } finally {
       setUpdating(false);
     }
+  }
+
+  async function generatePlan() {
+    setPlanLoading(true);
+    try {
+      const res = await fetch(`/api/ideas/${idea.id}/plan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: idea.title,
+          description: idea.description,
+          category: idea.category,
+          action_items: idea.action_items,
+          tags: idea.tags,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPlan(data.plan);
+      }
+    } finally {
+      setPlanLoading(false);
+    }
+  }
+
+  async function copyPlan() {
+    if (!plan) return;
+    await navigator.clipboard.writeText(plan);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -130,6 +163,50 @@ export default function IdeaCard({
           ))}
         </div>
       )}
+
+      <div className="mt-3 pt-3 border-t border-border">
+        {!plan && (
+          <button
+            onClick={generatePlan}
+            disabled={planLoading}
+            className="text-sm font-mono text-accent active:opacity-70 transition-opacity disabled:opacity-40"
+          >
+            {planLoading ? (
+              <span className="flex items-center gap-2">
+                <span className="inline-block w-3 h-3 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                Generating plan...
+              </span>
+            ) : (
+              "Plan"
+            )}
+          </button>
+        )}
+
+        {plan && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="label">Plan</p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={copyPlan}
+                  className="text-xs font-mono text-accent active:opacity-70 transition-opacity"
+                >
+                  {copied ? "Copied!" : "Copy"}
+                </button>
+                <button
+                  onClick={() => setPlan(null)}
+                  className="text-xs font-mono text-secondary active:opacity-70 transition-opacity"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            <pre className="text-sm text-secondary bg-bg rounded-lg p-3 whitespace-pre-wrap font-mono leading-relaxed overflow-x-auto">
+              {plan}
+            </pre>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
