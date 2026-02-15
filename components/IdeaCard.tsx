@@ -120,11 +120,11 @@ export default function IdeaCard({
           onClick={() => setCardExpanded(false)}
         />
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-6 py-16"
+          className="fixed inset-0 z-50 flex justify-center"
           onClick={() => setCardExpanded(false)}
         >
           <div
-            className="bg-card border border-border rounded-lg w-full max-w-md max-h-full overflow-y-auto pointer-events-auto"
+            className="bg-card border border-border rounded-lg w-full max-w-md max-h-[calc(100vh-8rem)] overflow-y-auto pointer-events-auto mt-16"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 pt-5 pb-4 border-b border-border">
