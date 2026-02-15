@@ -36,7 +36,8 @@ export default function SubmitPage() {
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full text-base font-mono bg-card border border-border rounded-xl px-4 py-3 text-text focus:outline-none focus:border-accent"
+            style={{ WebkitAppearance: "none", MozAppearance: "none", appearance: "none", boxSizing: "border-box" }}
+            className="block w-full text-base font-mono bg-card border border-border rounded-xl px-4 py-3 text-text focus:outline-none focus:border-accent"
           />
         </div>
 

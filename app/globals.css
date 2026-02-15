@@ -31,6 +31,18 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Normalize all form inputs to consistent box model */
+input, textarea, select, button {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+input[type="date"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
 /* Prevent pull-to-refresh in standalone PWA mode */
 @media (display-mode: standalone) {
   body {
