@@ -90,3 +90,79 @@ export async function processTranscription(
 
   return parsed;
 }
+
+const SOFTWARE_PLAN_PROMPT = `You are a technical project planner. Given an idea, generate a Claude Code-ready prompt that someone can paste directly into Claude Code to build it.
+
+Include:
+- Project name and one-line description
+- Suggested tech stack
+- File structure overview
+- Step-by-step build instructions (numbered)
+- Key implementation details and gotchas
+
+Format as clean markdown. Be specific and actionable — this should be paste-and-go.`;
+
+const NON_SOFTWARE_PLAN_PROMPT = `You are a creative project planner. Given an idea, generate a structured action plan to bring it to life.
+
+Include:
+- Project overview and goal
+- Phases broken into concrete tasks
+- Timeline suggestions (rough estimates)
+- Resources or tools needed
+- First three things to do today
+
+Format as clean markdown. Be specific, practical, and motivating.`;
+
+const PLAN_TOOL: Anthropic.Tool = {
+  name: "generate_plan",
+  description: "Generate an actionable plan for an idea",
+  input_schema: {
+    type: "object" as const,
+    properties: {
+      plan: {
+        type: "string",
+        description: "The full plan in markdown format",
+      },
+    },
+    required: ["plan"],
+  },
+};
+
+const SOFTWARE_CATEGORIES = ["product", "technical"];
+
+export async function generateIdeaPlan(idea: {
+  title: string;
+  description: string;
+  category: string;
+  action_items?: string[];
+  tags?: string[];
+}): Promise<string> {
+  const client = new Anthropic();
+  const isSoftware = SOFTWARE_CATEGORIES.includes(idea.category);
+
+  const userMessage = [
+    `**Idea:** ${idea.title}`,
+    `**Description:** ${idea.description}`,
+    `**Category:** ${idea.category}`,
+    idea.action_items?.length ? `**Action Items:** ${idea.action_items.join(", ")}` : "",
+    idea.tags?.length ? `**Tags:** ${idea.tags.join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const message = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 4096,
+    system: isSoftware ? SOFTWARE_PLAN_PROMPT : NON_SOFTWARE_PLAN_PROMPT,
+    tools: [PLAN_TOOL],
+    tool_choice: { type: "tool", name: "generate_plan" },
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const toolBlock = message.content.find((block) => block.type === "tool_use");
+  if (!toolBlock || toolBlock.type !== "tool_use") {
+    throw new Error("No tool response from Claude");
+  }
+
+  return (toolBlock.input as { plan: string }).plan;
+}
