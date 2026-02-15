@@ -79,16 +79,7 @@ export default function IdeaCard({
         <h3 className="font-mono text-sm font-semibold leading-tight">
           {idea.title}
         </h3>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={generatePlan}
-            disabled={planLoading}
-            className="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
-          >
-            {planLoading ? "..." : "plan"}
-          </button>
-          <CategoryTag category={idea.category} />
-        </div>
+        <CategoryTag category={idea.category} />
       </div>
 
       <p className="text-sm text-secondary leading-relaxed mb-3">
@@ -170,6 +161,18 @@ export default function IdeaCard({
               #{tag}
             </span>
           ))}
+        </div>
+      )}
+
+      {!plan && (
+        <div className="flex justify-end mt-3">
+          <button
+            onClick={generatePlan}
+            disabled={planLoading}
+            className="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
+          >
+            {planLoading ? "..." : "plan"}
+          </button>
         </div>
       )}
 
