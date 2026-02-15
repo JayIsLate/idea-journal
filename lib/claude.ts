@@ -66,5 +66,19 @@ export async function processTranscription(
   }
 
   const parsed: ClaudeResponse = JSON.parse(text);
+
+  // Ensure mood matches DB constraint
+  const validMoods = ["energized", "reflective", "anxious", "excited", "calm", "frustrated", "hopeful", "scattered"];
+  if (!validMoods.includes(parsed.mood)) {
+    parsed.mood = "reflective";
+  }
+
+  // Ensure categories match DB constraint
+  const validCategories = ["product", "content", "business", "personal", "technical", "creative"];
+  parsed.ideas = parsed.ideas.map((idea) => ({
+    ...idea,
+    category: validCategories.includes(idea.category) ? idea.category : "personal",
+  }));
+
   return parsed;
 }
