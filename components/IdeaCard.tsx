@@ -37,6 +37,7 @@ export default function IdeaCard({
   const [plan, setPlan] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [planError, setPlanError] = useState(false);
 
   async function updateStatus(newStatus: IdeaStatus) {
     setUpdating(true);
@@ -56,6 +57,7 @@ export default function IdeaCard({
 
   async function generatePlan() {
     setPlanLoading(true);
+    setPlanError(false);
     try {
       const res = await fetch(`/api/ideas/${idea.id}/plan`, {
         method: "POST",
@@ -71,7 +73,11 @@ export default function IdeaCard({
       if (res.ok) {
         const data = await res.json();
         setPlan(data.plan);
+      } else {
+        setPlanError(true);
       }
+    } catch {
+      setPlanError(true);
     } finally {
       setPlanLoading(false);
     }
@@ -258,7 +264,7 @@ export default function IdeaCard({
                 disabled={planLoading || !!plan}
                 className="inline-block px-2.5 py-1 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
               >
-                {planLoading ? "..." : "plan"}
+                {planLoading ? "..." : planError ? "retry" : "plan"}
               </button>
             </div>
           </div>
@@ -365,7 +371,7 @@ export default function IdeaCard({
             disabled={planLoading}
             className="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
           >
-            {planLoading ? "..." : "plan"}
+            {planLoading ? "..." : planError ? "retry" : "plan"}
           </button>
         </div>
       )}
