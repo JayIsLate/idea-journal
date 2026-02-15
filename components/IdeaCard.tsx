@@ -79,7 +79,16 @@ export default function IdeaCard({
         <h3 className="font-mono text-sm font-semibold leading-tight">
           {idea.title}
         </h3>
-        <CategoryTag category={idea.category} />
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={generatePlan}
+            disabled={planLoading}
+            className="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
+          >
+            {planLoading ? "..." : "plan"}
+          </button>
+          <CategoryTag category={idea.category} />
+        </div>
       </div>
 
       <p className="text-sm text-secondary leading-relaxed mb-3">
@@ -164,49 +173,30 @@ export default function IdeaCard({
         </div>
       )}
 
-      <div className="mt-3 pt-3 border-t border-border">
-        {!plan && (
-          <button
-            onClick={generatePlan}
-            disabled={planLoading}
-            className="text-sm font-mono text-accent active:opacity-70 transition-opacity disabled:opacity-40"
-          >
-            {planLoading ? (
-              <span className="flex items-center gap-2">
-                <span className="inline-block w-3 h-3 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                Generating plan...
-              </span>
-            ) : (
-              "Plan"
-            )}
-          </button>
-        )}
-
-        {plan && (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="label">Plan</p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={copyPlan}
-                  className="text-xs font-mono text-accent active:opacity-70 transition-opacity"
-                >
-                  {copied ? "Copied!" : "Copy"}
-                </button>
-                <button
-                  onClick={() => setPlan(null)}
-                  className="text-xs font-mono text-secondary active:opacity-70 transition-opacity"
-                >
-                  &times;
-                </button>
-              </div>
+      {plan && (
+        <div className="mt-3 pt-3 border-t border-border">
+          <div className="flex items-center justify-between mb-2">
+            <p className="label">Plan</p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={copyPlan}
+                className="text-xs font-mono text-accent active:opacity-70 transition-opacity"
+              >
+                {copied ? "Copied!" : "Copy"}
+              </button>
+              <button
+                onClick={() => setPlan(null)}
+                className="text-xs font-mono text-secondary active:opacity-70 transition-opacity"
+              >
+                &times;
+              </button>
             </div>
-            <pre className="text-sm text-secondary bg-bg rounded-lg p-3 whitespace-pre-wrap font-mono leading-relaxed overflow-x-auto">
-              {plan}
-            </pre>
           </div>
-        )}
-      </div>
+          <pre className="text-sm text-secondary bg-bg rounded-lg p-3 whitespace-pre-wrap font-mono leading-relaxed overflow-x-auto">
+            {plan}
+          </pre>
+        </div>
+      )}
     </div>
   );
 }
