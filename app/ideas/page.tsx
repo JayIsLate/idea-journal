@@ -59,7 +59,7 @@ export default function IdeasPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
       <div className="mb-5">
-        <h1 className="font-mono text-xl sm:text-2xl font-bold">Ideas<span className="text-accent">.</span>Index</h1>
+        <h1 className="font-mono text-xl sm:text-2xl font-bold">Ideas</h1>
         <p className="text-sm text-secondary mt-1">
           All extracted ideas, filterable and sortable
         </p>

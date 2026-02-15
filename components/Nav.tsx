@@ -17,7 +17,7 @@ export default function Nav() {
     <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
         <Link href="/" className="font-mono text-base sm:text-lg font-bold tracking-tight">
-          idea<span className="text-accent">.</span>journal
+          ideas<span className="text-accent">.</span>index
         </Link>
         <div className="flex gap-1">
           {links.map((link) => {
