@@ -15,81 +15,39 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = getSupabase();
-    const today = date || new Date().toISOString().split("T")[0];
-
-    // Check if there's already an entry for today
-    const { data: existingEntry } = await supabase
-      .from("entries")
-      .select("*")
-      .eq("date", today)
-      .single();
+    const entryDate = date || new Date().toISOString().split("T")[0];
 
     // Process transcription through Claude
     const processed = await processTranscription(transcription);
 
-    let entry;
+    // Always create a new entry
+    const { data: latest } = await supabase
+      .from("entries")
+      .select("day_number")
+      .order("day_number", { ascending: false })
+      .limit(1);
+    const dayNum =
+      latest && latest.length > 0 ? latest[0].day_number + 1 : 1;
 
-    if (existingEntry) {
-      // Append to existing entry
-      const combinedTranscription =
-        existingEntry.raw_transcription + "\n\n---\n\n" + transcription;
-      const combinedSummary =
-        existingEntry.summary + " " + processed.summary;
-      const combinedTags = [
-        ...new Set([...existingEntry.tags, ...processed.tags]),
-      ];
+    const { data: entry, error: entryError } = await supabase
+      .from("entries")
+      .insert({
+        day_number: dayNum,
+        date: entryDate,
+        raw_transcription: transcription,
+        title: processed.title,
+        summary: processed.summary,
+        mood: processed.mood,
+        tags: processed.tags,
+      })
+      .select()
+      .single();
 
-      const { data: updated, error: updateError } = await supabase
-        .from("entries")
-        .update({
-          raw_transcription: combinedTranscription,
-          title: processed.title,
-          summary: combinedSummary,
-          mood: processed.mood,
-          tags: combinedTags,
-        })
-        .eq("id", existingEntry.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        return NextResponse.json(
-          { error: updateError.message },
-          { status: 500 }
-        );
-      }
-      entry = updated;
-    } else {
-      // Create new entry
-      const { data: latest } = await supabase
-        .from("entries")
-        .select("day_number")
-        .order("day_number", { ascending: false })
-        .limit(1);
-      const dayNum =
-        latest && latest.length > 0 ? latest[0].day_number + 1 : 1;
-
-      const { data: created, error: entryError } = await supabase
-        .from("entries")
-        .insert({
-          day_number: dayNum,
-          date: today,
-          raw_transcription: transcription,
-          title: processed.title,
-          summary: processed.summary,
-          mood: processed.mood,
-          tags: processed.tags,
-        })
-        .select()
-        .single();
-
-      if (entryError) {
-        return NextResponse.json(
-          { error: entryError.message },
-          { status: 500 }
-        );
-      }
-      entry = created;
+    if (entryError) {
+      return NextResponse.json(
+        { error: entryError.message },
+        { status: 500 }
+      );
     }
 
     // Insert new ideas (always appended)
