@@ -10,33 +10,44 @@ Your job is to:
 4. Extract relevant tags (lowercase, no spaces, use hyphens)
 5. Extract every distinct idea mentioned, no matter how small
 
-For each idea, provide:
-- title: A clear, actionable name (3-7 words)
-- description: 1-2 sentences explaining the idea
-- category: one of "product", "content", "business", "personal", "technical", "creative"
-- confidence: 0.0-1.0 how fully formed the idea is
-- action_items: concrete next steps (array of strings)
-- tags: relevant tags for this specific idea
-- ai_suggestions: your suggestions for developing this idea further
+Always use the extract_ideas tool to return your response.`;
 
-Respond ONLY with valid JSON matching this exact structure:
-{
-  "title": "string",
-  "summary": "string",
-  "mood": "string",
-  "tags": ["string"],
-  "ideas": [
-    {
-      "title": "string",
-      "description": "string",
-      "category": "string",
-      "confidence": 0.0,
-      "action_items": ["string"],
-      "tags": ["string"],
-      "ai_suggestions": ["string"]
-    }
-  ]
-}`;
+const EXTRACT_TOOL: Anthropic.Tool = {
+  name: "extract_ideas",
+  description: "Extract structured ideas from a voice memo transcription",
+  input_schema: {
+    type: "object" as const,
+    properties: {
+      title: { type: "string", description: "Short punchy title, 5-8 words" },
+      summary: { type: "string", description: "2-3 sentence summary of key themes" },
+      mood: {
+        type: "string",
+        enum: ["energized", "reflective", "anxious", "excited", "calm", "frustrated", "hopeful", "scattered"],
+      },
+      tags: { type: "array", items: { type: "string" }, description: "Relevant tags, lowercase with hyphens" },
+      ideas: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Clear actionable name, 3-7 words" },
+            description: { type: "string", description: "1-2 sentences explaining the idea" },
+            category: {
+              type: "string",
+              enum: ["product", "content", "business", "personal", "technical", "creative"],
+            },
+            confidence: { type: "number", description: "0.0-1.0 how fully formed the idea is" },
+            action_items: { type: "array", items: { type: "string" }, description: "Concrete next steps" },
+            tags: { type: "array", items: { type: "string" }, description: "Tags for this idea" },
+            ai_suggestions: { type: "array", items: { type: "string" }, description: "Suggestions for developing this idea" },
+          },
+          required: ["title", "description", "category", "confidence", "action_items", "tags", "ai_suggestions"],
+        },
+      },
+    },
+    required: ["title", "summary", "mood", "tags", "ideas"],
+  },
+};
 
 export async function processTranscription(
   transcription: string
@@ -47,6 +58,8 @@ export async function processTranscription(
     model: "claude-haiku-4-5-20251001",
     max_tokens: 4096,
     system: SYSTEM_PROMPT,
+    tools: [EXTRACT_TOOL],
+    tool_choice: { type: "tool", name: "extract_ideas" },
     messages: [
       {
         role: "user",
@@ -55,17 +68,12 @@ export async function processTranscription(
     ],
   });
 
-  const textBlock = message.content.find((block) => block.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error("No text response from Claude");
+  const toolBlock = message.content.find((block) => block.type === "tool_use");
+  if (!toolBlock || toolBlock.type !== "tool_use") {
+    throw new Error("No tool response from Claude");
   }
 
-  let text = textBlock.text.trim();
-  if (text.startsWith("```")) {
-    text = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-  }
-
-  const parsed: ClaudeResponse = JSON.parse(text);
+  const parsed = toolBlock.input as ClaudeResponse;
 
   // Ensure mood matches DB constraint
   const validMoods = ["energized", "reflective", "anxious", "excited", "calm", "frustrated", "hopeful", "scattered"];
