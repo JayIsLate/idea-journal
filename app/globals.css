@@ -11,12 +11,31 @@
   --border: #E5E5E5;
 }
 
+html {
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+}
+
+/* Prevent tap highlight and callouts on iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent pull-to-refresh in standalone PWA mode */
+@media (display-mode: standalone) {
+  body {
+    overscroll-behavior: none;
+  }
 }
 
 @layer utilities {

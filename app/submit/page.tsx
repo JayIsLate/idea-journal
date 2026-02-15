@@ -33,7 +33,7 @@ export default function SubmitPage() {
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full text-sm font-mono bg-card border border-border rounded-xl px-4 py-3 text-text focus:outline-none focus:border-accent"
+            className="w-full text-base font-mono bg-card border border-border rounded-xl px-4 py-3 text-text focus:outline-none focus:border-accent"
           />
         </div>
 
@@ -43,7 +43,7 @@ export default function SubmitPage() {
           placeholder="Paste your voice memo transcription here..."
           rows={12}
           autoFocus
-          className="w-full text-sm font-sans bg-card border border-border rounded-xl px-4 py-3 text-text placeholder:text-secondary focus:outline-none focus:border-accent resize-y leading-relaxed"
+          className="w-full text-base font-sans bg-card border border-border rounded-xl px-4 py-3 text-text placeholder:text-secondary focus:outline-none focus:border-accent resize-y leading-relaxed"
         />
 
         <button
