@@ -124,7 +124,7 @@ export default function IdeaCard({
           onClick={() => setCardExpanded(false)}
         >
           <div
-            className="bg-card border border-border rounded-lg w-full max-w-md max-h-[calc(100vh-8rem)] overflow-y-auto pointer-events-auto mt-16"
+            className="bg-card border border-border rounded-lg w-full max-w-md max-h-[calc(100vh-200px)] overflow-y-auto pointer-events-auto mt-[100px]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 pt-5 pb-4 border-b border-border">
