@@ -13,15 +13,26 @@ const statuses: IdeaStatus[] = [
   "archived",
 ];
 
+const statusColors: Record<IdeaStatus, string> = {
+  raw: "bg-gray-400",
+  developing: "bg-yellow-400",
+  ready: "bg-blue-500",
+  shipped: "bg-green-500",
+  archived: "bg-gray-300",
+};
+
 export default function IdeaCard({
   idea,
   showEntryLink,
+  compact,
 }: {
   idea: Idea;
   showEntryLink?: boolean;
+  compact?: boolean;
 }) {
   const [status, setStatus] = useState<IdeaStatus>(idea.status);
   const [expanded, setExpanded] = useState(false);
+  const [cardExpanded, setCardExpanded] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
@@ -73,8 +84,45 @@ export default function IdeaCard({
     setTimeout(() => setCopied(false), 2000);
   }
 
+  if (compact && !cardExpanded) {
+    return (
+      <button
+        onClick={() => setCardExpanded(true)}
+        className="bg-card border border-border rounded-xl p-4 aspect-square flex flex-col justify-between text-left w-full hover:border-accent/40 transition-colors"
+      >
+        <div>
+          <CategoryTag category={idea.category} />
+          <h3 className="font-mono text-sm font-semibold leading-tight mt-2.5 line-clamp-2">
+            {idea.title}
+          </h3>
+          <p className="text-xs text-secondary leading-relaxed mt-1.5 line-clamp-2">
+            {idea.description}
+          </p>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-1.5 text-xs font-mono text-secondary">
+            <span className={`w-1.5 h-1.5 rounded-full ${statusColors[status] || statusColors.raw}`} />
+            {status}
+          </span>
+          <span className="text-xs font-mono text-secondary">
+            {Math.round(idea.confidence * 100)}%
+          </span>
+        </div>
+      </button>
+    );
+  }
+
   return (
-    <div className="bg-card border border-border rounded-xl p-4">
+    <div className={`bg-card border border-border rounded-xl p-4 ${compact ? "col-span-2 lg:col-span-4" : ""}`}>
+      {compact && (
+        <button
+          onClick={() => setCardExpanded(false)}
+          className="text-xs font-mono text-secondary mb-3 active:opacity-70"
+        >
+          &larr; Back to grid
+        </button>
+      )}
+
       <div className="flex items-start justify-between gap-2 mb-2">
         <h3 className="font-mono text-sm font-semibold leading-tight">
           {idea.title}

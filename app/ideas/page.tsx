@@ -135,7 +135,7 @@ export default function IdeasPage() {
       ) : (
         <div className={view === "grid" ? "grid grid-cols-2 lg:grid-cols-4 gap-3" : "space-y-3"}>
           {filteredIdeas.map((idea) => (
-            <IdeaCard key={idea.id} idea={idea} showEntryLink />
+            <IdeaCard key={idea.id} idea={idea} showEntryLink compact={view === "grid"} />
           ))}
         </div>
       )}
