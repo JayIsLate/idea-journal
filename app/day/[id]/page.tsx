@@ -61,7 +61,7 @@ export default function DayPage() {
 
   if (loading) {
     return (
-      <div className="max-w-stream mx-auto px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="animate-pulse space-y-4 py-8">
           <div className="h-4 bg-border rounded w-1/3" />
           <div className="h-8 bg-border rounded w-2/3" />
@@ -73,7 +73,7 @@ export default function DayPage() {
 
   if (!entry) {
     return (
-      <div className="max-w-stream mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <p className="text-secondary font-mono text-sm">Entry not found.</p>
         <Link
           href="/"
@@ -94,7 +94,7 @@ export default function DayPage() {
   });
 
   return (
-    <div className="max-w-stream mx-auto px-4 sm:px-6 pb-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
       <div className="flex items-center justify-between mb-5">
         <Link
           href="/"

@@ -54,7 +54,7 @@ export default function SubmitPage() {
   }
 
   return (
-    <div className="max-w-stream mx-auto px-4 sm:px-6 pb-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
       <div className="mb-5">
         <h1 className="font-mono text-xl sm:text-2xl font-bold">Submit</h1>
         <p className="text-sm text-secondary mt-1">
