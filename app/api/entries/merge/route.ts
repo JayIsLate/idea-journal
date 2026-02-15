@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
     const combinedTranscription =
       target.raw_transcription + "\n\n---\n\n" + source.raw_transcription;
     const combinedSummary = target.summary + " " + source.summary;
-    const combinedTags = [
-      ...new Set([...target.tags, ...source.tags]),
-    ];
+    const combinedTags = Array.from(
+      new Set([...target.tags, ...source.tags])
+    );
 
     // Update target entry with merged content
     const { error: updateError } = await supabase
