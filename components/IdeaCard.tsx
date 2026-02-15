@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Idea, IdeaStatus } from "@/lib/types";
 import CategoryTag from "./CategoryTag";
 import StatusBadge from "./StatusBadge";
@@ -20,6 +20,36 @@ const statusColors: Record<IdeaStatus, string> = {
   shipped: "bg-green-500",
   archived: "bg-gray-300",
 };
+
+function PlanProgress() {
+  const [elapsed, setElapsed] = useState(0);
+  const estimate = 8;
+
+  useEffect(() => {
+    const start = Date.now();
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - start) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const progress = Math.min((elapsed / estimate) * 90, 92);
+
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs font-mono text-secondary">Generating plan</span>
+        <span className="text-xs font-mono text-secondary">{elapsed}s / ~{estimate}s</span>
+      </div>
+      <div className="h-0.5 bg-border rounded-full overflow-hidden">
+        <div
+          className="h-full bg-accent rounded-full transition-all duration-1000 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function IdeaCard({
   idea,
@@ -248,25 +278,31 @@ export default function IdeaCard({
               )}
             </div>
 
-            <div className="px-5 py-4 border-t border-border flex items-center justify-between">
-              {showEntryLink ? (
-                <a
-                  href={`/day/${idea.entry_id}`}
-                  className="text-xs font-mono text-accent active:opacity-70"
+            {planLoading ? (
+              <div className="px-5 py-4 border-t border-border">
+                <PlanProgress />
+              </div>
+            ) : (
+              <div className="px-5 py-4 border-t border-border flex items-center justify-between">
+                {showEntryLink ? (
+                  <a
+                    href={`/day/${idea.entry_id}`}
+                    className="text-xs font-mono text-accent active:opacity-70"
+                  >
+                    View entry &rarr;
+                  </a>
+                ) : (
+                  <span />
+                )}
+                <button
+                  onClick={generatePlan}
+                  disabled={!!plan}
+                  className="inline-block px-2.5 py-1 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
                 >
-                  View entry &rarr;
-                </a>
-              ) : (
-                <span />
-              )}
-              <button
-                onClick={generatePlan}
-                disabled={planLoading || !!plan}
-                className="inline-block px-2.5 py-1 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
-              >
-                {planLoading ? "..." : planError ? "retry" : "plan"}
-              </button>
-            </div>
+                  {planError ? "retry" : "plan"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </>
@@ -364,17 +400,18 @@ export default function IdeaCard({
         </div>
       )}
 
-      {!plan && (
+      {!plan && !planLoading && (
         <div className="flex justify-end mt-3">
           <button
             onClick={generatePlan}
-            disabled={planLoading}
-            className="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
+            className="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity"
           >
-            {planLoading ? "..." : planError ? "retry" : "plan"}
+            {planError ? "retry" : "plan"}
           </button>
         </div>
       )}
+
+      {planLoading && <PlanProgress />}
 
       {plan && (
         <div className="mt-3 pt-3 border-t border-border">
