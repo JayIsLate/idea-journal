@@ -9,15 +9,22 @@ export default function HomePage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
   const { status } = useProcessing();
 
   const fetchEntries = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
+    setError("");
     try {
       const res = await fetch("/api/entries?t=" + Date.now(), { cache: "no-store" });
-      if (res.ok) {
-        setEntries(await res.json());
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || `Fetch failed (${res.status})`);
+        return;
       }
+      setEntries(await res.json());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Network error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -54,6 +61,12 @@ export default function HomePage() {
           {refreshing ? "..." : "↻"}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+          <p className="text-sm font-mono text-red-600">{error}</p>
+        </div>
+      )}
 
       {loading ? (
         <div className="animate-pulse space-y-3">
