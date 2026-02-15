@@ -74,11 +74,11 @@ export default function IdeasPage() {
           className="w-full text-sm font-mono bg-card border border-border rounded-xl px-4 py-3 text-text placeholder:text-secondary focus:outline-none focus:border-accent"
         />
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="flex-1 text-sm font-mono bg-card border border-border rounded-xl px-3 py-2.5 text-secondary focus:outline-none focus:border-accent"
+            className="flex-1 min-w-0 text-sm font-mono bg-card border border-border rounded-xl px-3 py-2.5 text-secondary focus:outline-none focus:border-accent"
           >
             <option value="all">All categories</option>
             {categories.map((c) => (
@@ -91,7 +91,7 @@ export default function IdeasPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="flex-1 text-sm font-mono bg-card border border-border rounded-xl px-3 py-2.5 text-secondary focus:outline-none focus:border-accent"
+            className="flex-1 min-w-0 text-sm font-mono bg-card border border-border rounded-xl px-3 py-2.5 text-secondary focus:outline-none focus:border-accent"
           >
             <option value="all">All statuses</option>
             {statuses.map((s) => (
