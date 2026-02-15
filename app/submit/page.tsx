@@ -5,7 +5,10 @@ import { useProcessing } from "@/lib/processing-context";
 
 export default function SubmitPage() {
   const [transcription, setTranscription] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  });
   const { status, submit } = useProcessing();
 
   function handleSubmit(e: React.FormEvent) {
@@ -51,7 +54,7 @@ export default function SubmitPage() {
           disabled={status === "submitting" || !transcription.trim()}
           className="w-full font-mono text-sm font-medium bg-accent text-white rounded-xl px-4 py-3.5 active:scale-[0.98] transition-all disabled:opacity-40 disabled:active:scale-100"
         >
-          {status === "submitting" ? "Processing..." : "Submit & Extract Ideas"}
+          {status === "submitting" ? "Processing..." : "Extract Ideas"}
         </button>
       </form>
 
