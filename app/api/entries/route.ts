@@ -57,7 +57,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(filtered);
+    return NextResponse.json(filtered, {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+      },
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

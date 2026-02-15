@@ -14,7 +14,7 @@ export default function GridPage() {
   const fetchEntries = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const res = await fetch("/api/entries", { cache: "no-store" });
+      const res = await fetch("/api/entries?t=" + Date.now(), { cache: "no-store" });
       if (res.ok) {
         setEntries(await res.json());
       }
