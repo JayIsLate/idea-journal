@@ -126,7 +126,7 @@ export default function IdeaCard({
     return (
       <button
         onClick={() => setCardExpanded(true)}
-        className="bg-card border border-border rounded-xl p-4 aspect-square flex flex-col justify-between text-left w-full hover:border-accent/40 transition-colors"
+        className="relative bg-card border border-border rounded-xl p-4 aspect-square flex flex-col justify-between text-left w-full hover:border-accent/40 transition-colors"
       >
         <div>
           <CategoryTag category={idea.category} />
@@ -142,15 +142,13 @@ export default function IdeaCard({
             <span className={`w-1.5 h-1.5 rounded-full ${statusColors[status] || statusColors.raw}`} />
             {status}
           </span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-mono text-secondary">
-              {Math.round(idea.confidence * 100)}%
-            </span>
-            {hasWriting && (
-              <span className="w-2 h-2 rounded-full bg-accent" title="Has writing" />
-            )}
-          </div>
+          <span className="text-xs font-mono text-secondary">
+            {Math.round(idea.confidence * 100)}%
+          </span>
         </div>
+        {hasWriting && (
+          <span className="absolute bottom-3 right-3 w-2.5 h-2.5 rounded-full bg-accent" title="Has writing" />
+        )}
       </button>
     );
   }
