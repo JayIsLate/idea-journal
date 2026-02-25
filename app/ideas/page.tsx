@@ -23,11 +23,13 @@ const statuses: IdeaStatus[] = [
 export default function IdeasPage() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [writingIds, setWritingIds] = useState<Set<string>>(new Set());
+  const [writingTimestamps, setWritingTimestamps] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"list" | "grid">("grid");
+  const [sortByRecent, setSortByRecent] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -45,24 +47,38 @@ export default function IdeasPage() {
       if (writingRes.ok) {
         const data = await writingRes.json();
         setWritingIds(new Set(data.ids));
+        setWritingTimestamps(data.timestamps || {});
       }
       setLoading(false);
     }
     load();
   }, []);
 
-  const filteredIdeas = ideas.filter((idea) => {
-    if (categoryFilter !== "all" && idea.category !== categoryFilter)
-      return false;
-    if (statusFilter !== "all" && idea.status !== statusFilter) return false;
-    if (
-      search &&
-      !idea.title.toLowerCase().includes(search.toLowerCase()) &&
-      !idea.description.toLowerCase().includes(search.toLowerCase())
-    )
-      return false;
-    return true;
-  });
+  const filteredIdeas = ideas
+    .filter((idea) => {
+      if (categoryFilter !== "all" && idea.category !== categoryFilter)
+        return false;
+      if (statusFilter === "with-notes") {
+        if (!writingIds.has(idea.id)) return false;
+      } else if (statusFilter !== "all" && idea.status !== statusFilter) {
+        return false;
+      }
+      if (
+        search &&
+        !idea.title.toLowerCase().includes(search.toLowerCase()) &&
+        !idea.description.toLowerCase().includes(search.toLowerCase())
+      )
+        return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (!sortByRecent) return 0;
+      const tA = writingTimestamps[a.id] || "";
+      const tB = writingTimestamps[b.id] || "";
+      if (tA && !tB) return -1;
+      if (!tA && tB) return 1;
+      return tB.localeCompare(tA);
+    });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
@@ -102,12 +118,24 @@ export default function IdeasPage() {
             className="flex-1 min-w-0 text-sm font-mono bg-card border border-border rounded-xl px-3 py-2.5 text-secondary focus:outline-none focus:border-accent"
           >
             <option value="all">All statuses</option>
+            <option value="with-notes">with notes</option>
             {statuses.map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>
             ))}
           </select>
+
+          <button
+            onClick={() => setSortByRecent(!sortByRecent)}
+            className={`text-sm font-mono px-3 py-2.5 rounded-xl border shrink-0 transition-colors ${
+              sortByRecent
+                ? "bg-accent/10 border-accent/30 text-accent"
+                : "bg-card border-border text-secondary"
+            }`}
+          >
+            Recent
+          </button>
 
           <div className="flex bg-card border border-border rounded-xl overflow-hidden shrink-0">
             <button
