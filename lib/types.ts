@@ -19,6 +19,7 @@ export interface Idea {
   action_items: string[];
   tags: string[];
   ai_suggestions: string[];
+  word_count?: number;
   created_at: string;
   updated_at: string;
 }

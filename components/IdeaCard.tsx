@@ -294,13 +294,21 @@ export default function IdeaCard({
                 ) : (
                   <span />
                 )}
-                <button
-                  onClick={generatePlan}
-                  disabled={!!plan}
-                  className="inline-block px-2.5 py-1 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
-                >
-                  {planError ? "retry" : "plan"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`/write/${idea.id}`}
+                    className="inline-block px-2.5 py-1 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity"
+                  >
+                    write
+                  </a>
+                  <button
+                    onClick={generatePlan}
+                    disabled={!!plan}
+                    className="inline-block px-2.5 py-1 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
+                  >
+                    {planError ? "retry" : "plan"}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -401,7 +409,13 @@ export default function IdeaCard({
       )}
 
       {!plan && !planLoading && (
-        <div className="flex justify-end mt-3">
+        <div className="flex justify-end gap-2 mt-3">
+          <a
+            href={`/write/${idea.id}`}
+            className="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity"
+          >
+            write
+          </a>
           <button
             onClick={generatePlan}
             className="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-accent/10 text-accent active:opacity-70 transition-opacity"
