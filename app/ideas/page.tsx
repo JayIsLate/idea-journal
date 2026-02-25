@@ -22,6 +22,7 @@ const statuses: IdeaStatus[] = [
 
 export default function IdeasPage() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [writingIds, setWritingIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -30,13 +31,20 @@ export default function IdeasPage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch("/api/entries");
-      if (res.ok) {
-        const entries: Entry[] = await res.json();
+      const [entriesRes, writingRes] = await Promise.all([
+        fetch("/api/entries"),
+        fetch("/api/writing/active"),
+      ]);
+      if (entriesRes.ok) {
+        const entries: Entry[] = await entriesRes.json();
         const allIdeas = entries.flatMap((e) =>
           (e.ideas || []).map((idea) => ({ ...idea, entry_id: e.id }))
         );
         setIdeas(allIdeas);
+      }
+      if (writingRes.ok) {
+        const data = await writingRes.json();
+        setWritingIds(new Set(data.ids));
       }
       setLoading(false);
     }
@@ -135,7 +143,7 @@ export default function IdeasPage() {
       ) : (
         <div className={view === "grid" ? "grid grid-cols-2 lg:grid-cols-4 gap-3" : "space-y-3"}>
           {filteredIdeas.map((idea) => (
-            <IdeaCard key={idea.id} idea={idea} showEntryLink compact={view === "grid"} />
+            <IdeaCard key={idea.id} idea={idea} showEntryLink compact={view === "grid"} hasWriting={writingIds.has(idea.id)} />
           ))}
         </div>
       )}

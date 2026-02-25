@@ -55,10 +55,12 @@ export default function IdeaCard({
   idea,
   showEntryLink,
   compact,
+  hasWriting,
 }: {
   idea: Idea;
   showEntryLink?: boolean;
   compact?: boolean;
+  hasWriting?: boolean;
 }) {
   const [status, setStatus] = useState<IdeaStatus>(idea.status);
   const [expanded, setExpanded] = useState(false);
@@ -140,9 +142,14 @@ export default function IdeaCard({
             <span className={`w-1.5 h-1.5 rounded-full ${statusColors[status] || statusColors.raw}`} />
             {status}
           </span>
-          <span className="text-xs font-mono text-secondary">
-            {Math.round(idea.confidence * 100)}%
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-mono text-secondary">
+              {Math.round(idea.confidence * 100)}%
+            </span>
+            {hasWriting && (
+              <span className="w-2 h-2 rounded-full bg-accent" title="Has writing" />
+            )}
+          </div>
         </div>
       </button>
     );
