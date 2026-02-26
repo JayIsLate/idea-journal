@@ -180,7 +180,7 @@ export default function ChatWindow({
   );
 
   return (
-    <div className="w-80 border-l border-border bg-card flex flex-col h-[calc(100vh-120px)] sticky top-[120px]">
+    <div className="fixed inset-0 z-40 bg-card flex flex-col md:relative md:inset-auto md:z-auto md:w-80 md:border-l md:border-border md:h-[calc(100vh-120px)] md:sticky md:top-[120px]">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <span className="text-xs font-mono font-medium">Chat</span>
@@ -231,7 +231,7 @@ export default function ChatWindow({
       </div>
 
       {/* Input */}
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border pb-[env(safe-area-inset-bottom,12px)]">
         <div className="flex gap-2">
           <textarea
             ref={inputRef}

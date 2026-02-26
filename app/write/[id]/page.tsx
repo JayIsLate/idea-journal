@@ -396,22 +396,22 @@ export default function WritePage() {
               </h1>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs font-mono text-secondary">
+              <span className="hidden sm:inline text-xs font-mono text-secondary">
                 {wordCount} {wordCount === 1 ? "word" : "words"}
               </span>
-              <span className="text-xs font-mono text-secondary">
+              <span className="hidden sm:inline text-xs font-mono text-secondary">
                 {saving ? "Saving..." : lastSaved ? "Saved" : ""}
               </span>
               <button
                 onClick={handleExport}
-                className="text-xs font-mono text-secondary hover:text-accent px-1.5 py-0.5"
+                className="hidden sm:inline-block text-xs font-mono text-secondary hover:text-accent px-1.5 py-0.5"
                 title="Export as markdown"
               >
                 .md
               </button>
               <button
                 onClick={() => setFocusMode(!focusMode)}
-                className={`text-xs font-mono px-1.5 py-0.5 rounded ${focusMode ? "bg-accent/10 text-accent" : "text-secondary hover:text-accent"}`}
+                className={`hidden sm:inline-block text-xs font-mono px-1.5 py-0.5 rounded ${focusMode ? "bg-accent/10 text-accent" : "text-secondary hover:text-accent"}`}
                 title="Focus mode (⌘⇧F)"
               >
                 focus
@@ -421,7 +421,7 @@ export default function WritePage() {
                 disabled={feedbackLoading || !pages[activeKey].trim()}
                 className="text-xs font-mono font-medium px-2.5 py-1 rounded bg-accent/10 text-accent active:opacity-70 transition-opacity disabled:opacity-40"
               >
-                {feedbackLoading ? "Analyzing..." : "Get Feedback"}
+                {feedbackLoading ? "..." : "Feedback"}
               </button>
               <button
                 onClick={() => setChatOpen(!chatOpen)}
@@ -461,7 +461,7 @@ export default function WritePage() {
 
         {/* Editor area */}
         <div
-          className={`flex-1 min-w-0 transition-all ${chatOpen ? "max-w-3xl" : "max-w-4xl mx-auto"}`}
+          className={`flex-1 min-w-0 transition-all ${chatOpen ? "max-w-4xl mx-auto md:max-w-3xl md:mx-0" : "max-w-4xl mx-auto"}`}
         >
           <div className="px-4 py-6">
             <WritingEditor
