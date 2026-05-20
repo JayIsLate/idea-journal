@@ -1,10 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { ClaudeResponse } from "./types";
 
-const SYSTEM_PROMPT = `You are an idea extraction assistant for a personal journal. You will receive a raw voice memo transcription from a morning journal session.
+const SYSTEM_PROMPT = `You are an idea extraction assistant for a personal journal. You will receive raw text from a journal entry — either a transcribed voice memo or a written note.
 
 Your job is to:
-1. Generate a short, punchy title for the entry (5-8 words)
+1. Generate a short title (3-6 words). Match the writer's voice: direct, casual, no marketing or hype words. Lowercase unless a proper noun. No clickbait, no "how to", no colons.
 2. Write a 2-3 sentence summary of the key themes
 3. Detect the overall mood (one word: energized, reflective, anxious, excited, calm, frustrated, hopeful, scattered)
 4. Extract relevant tags (lowercase, no spaces, use hyphens)
@@ -18,7 +18,7 @@ const EXTRACT_TOOL: Anthropic.Tool = {
   input_schema: {
     type: "object" as const,
     properties: {
-      title: { type: "string", description: "Short punchy title, 5-8 words" },
+      title: { type: "string", description: "Short title, 3-6 words, lowercase, matches writer's tone" },
       summary: { type: "string", description: "2-3 sentence summary of key themes" },
       mood: {
         type: "string",

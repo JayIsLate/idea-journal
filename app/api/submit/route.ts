@@ -4,7 +4,7 @@ import { processTranscription } from "@/lib/claude";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { transcription, date } = body;
+  const { transcription, date, title: titleOverride, mood: moodOverride } = body;
 
   if (!transcription) {
     return NextResponse.json(
@@ -29,15 +29,30 @@ export async function POST(request: NextRequest) {
     const dayNum =
       latest && latest.length > 0 ? latest[0].day_number + 1 : 1;
 
+    const ALLOWED_MOODS = [
+      "energized",
+      "reflective",
+      "anxious",
+      "excited",
+      "calm",
+      "frustrated",
+      "hopeful",
+      "scattered",
+    ];
+    const finalMood =
+      moodOverride && ALLOWED_MOODS.includes(moodOverride)
+        ? moodOverride
+        : processed.mood;
+
     const { data: entry, error: entryError } = await supabase
       .from("entries")
       .insert({
         day_number: dayNum,
         date: entryDate,
         raw_transcription: transcription,
-        title: processed.title,
+        title: titleOverride?.trim() ? titleOverride.trim() : processed.title,
         summary: processed.summary,
-        mood: processed.mood,
+        mood: finalMood,
         tags: processed.tags,
       })
       .select()
