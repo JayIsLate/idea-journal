@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Entry, Idea, IdeaCategory, IdeaStatus } from "@/lib/types";
 import IdeaCard from "@/components/IdeaCard";
+import SiteNav from "@/components/SiteNav";
 
 const categories: IdeaCategory[] = [
   "product",
@@ -81,9 +82,12 @@ export default function IdeasPage() {
     });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+    <>
+      <SiteNav activeSection="ideas" contextLabel={`${ideas.length} IDEAS`} />
+      <div className="notebook-grid min-h-[calc(100dvh-48px)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8 pb-12">
       <div className="mb-5">
-        <h1 className="font-mono text-xl sm:text-2xl font-bold">Ideas</h1>
+        <h1 className="font-mono text-2xl sm:text-[26px] font-bold">Ideas</h1>
         <p className="text-sm text-secondary mt-1">
           All extracted ideas, filterable and sortable
         </p>
@@ -95,14 +99,14 @@ export default function IdeasPage() {
           placeholder="Search ideas..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full text-sm font-mono bg-card border border-border rounded-xl px-4 py-3 text-text placeholder:text-secondary focus:outline-none focus:border-accent"
+          className="w-full font-mono text-[12px] bg-card/85 border border-border px-3 py-2.5 text-text placeholder:text-secondary focus:outline-none focus:border-accent"
         />
 
         <div className="flex gap-2 flex-wrap">
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="flex-1 min-w-0 text-sm font-mono bg-card border border-border rounded-xl px-3 py-2.5 text-secondary focus:outline-none focus:border-accent"
+            className="flex-1 min-w-0 font-mono text-[11px] uppercase tracking-wider bg-card/85 border border-border px-2.5 py-2 text-secondary focus:outline-none focus:border-accent"
           >
             <option value="all">All categories</option>
             {categories.map((c) => (
@@ -115,7 +119,7 @@ export default function IdeasPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="flex-1 min-w-0 text-sm font-mono bg-card border border-border rounded-xl px-3 py-2.5 text-secondary focus:outline-none focus:border-accent"
+            className="flex-1 min-w-0 font-mono text-[11px] uppercase tracking-wider bg-card/85 border border-border px-2.5 py-2 text-secondary focus:outline-none focus:border-accent"
           >
             <option value="all">All statuses</option>
             <option value="with-notes">with notes</option>
@@ -128,25 +132,25 @@ export default function IdeasPage() {
 
           <button
             onClick={() => setSortByRecent(!sortByRecent)}
-            className={`text-sm font-mono px-3 py-2.5 rounded-xl border shrink-0 transition-colors ${
+            className={`font-mono text-[11px] uppercase tracking-wider px-3 py-2 border shrink-0 transition-colors ${
               sortByRecent
-                ? "bg-accent/10 border-accent/30 text-accent"
-                : "bg-card border-border text-secondary"
+                ? "border-accent text-accent bg-card/85"
+                : "bg-card/85 border-border text-secondary hover:border-text/40"
             }`}
           >
             Recent
           </button>
 
-          <div className="flex bg-card border border-border rounded-xl overflow-hidden shrink-0">
+          <div className="hidden md:flex bg-card/85 border border-border overflow-hidden shrink-0">
             <button
               onClick={() => setView("grid")}
-              className={`px-3 py-2.5 text-sm font-mono ${view === "grid" ? "bg-accent text-white" : "text-secondary"}`}
+              className={`px-3 py-2 font-mono text-[10px] uppercase tracking-wider transition-colors ${view === "grid" ? "bg-accent text-card" : "text-secondary hover:text-text"}`}
             >
               Grid
             </button>
             <button
               onClick={() => setView("list")}
-              className={`px-3 py-2.5 text-sm font-mono ${view === "list" ? "bg-accent text-white" : "text-secondary"}`}
+              className={`px-3 py-2 font-mono text-[10px] uppercase tracking-wider transition-colors ${view === "list" ? "bg-accent text-card" : "text-secondary hover:text-text"}`}
             >
               List
             </button>
@@ -175,6 +179,8 @@ export default function IdeasPage() {
           ))}
         </div>
       )}
-    </div>
+        </div>
+      </div>
+    </>
   );
 }

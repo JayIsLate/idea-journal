@@ -126,28 +126,28 @@ export default function IdeaCard({
     return (
       <button
         onClick={() => setCardExpanded(true)}
-        className="relative bg-card border border-border rounded-xl p-4 aspect-square flex flex-col justify-between text-left w-full hover:border-accent/40 transition-colors"
+        className="relative bg-card/85 backdrop-blur-[1px] border border-border hover:border-text/40 transition-colors p-4 aspect-square flex flex-col justify-between text-left w-full"
       >
         <div>
           <CategoryTag category={idea.category} />
-          <h3 className="font-mono text-sm font-semibold leading-tight mt-2.5 line-clamp-2">
+          <h3 className="font-mono text-[13px] font-bold leading-snug mt-2.5 line-clamp-2">
             {idea.title}
           </h3>
-          <p className="text-xs text-secondary leading-relaxed mt-1.5 line-clamp-2">
+          <p className="font-sans text-[12px] text-secondary leading-snug mt-1.5 line-clamp-2">
             {idea.description}
           </p>
         </div>
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 text-xs font-mono text-secondary">
+          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-secondary">
             <span className={`w-1.5 h-1.5 rounded-full ${statusColors[status] || statusColors.raw}`} />
             {status}
           </span>
-          <span className="text-xs font-mono text-secondary">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-secondary">
             {Math.round(idea.confidence * 100)}%
           </span>
         </div>
         {hasWriting && (
-          <span className="absolute bottom-3 right-3 w-2.5 h-2.5 rounded-full bg-accent" title="Has writing" />
+          <span className="absolute bottom-3 right-3 w-2 h-2 rounded-full bg-accent" title="Has writing" />
         )}
       </button>
     );
