@@ -55,8 +55,10 @@ export default async function SynthesisPage() {
   return (
     <>
       <SiteNav activeSection="synthesis" contextLabel={contextLabel} />
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-5 sm:py-8 pb-12">
-        <SynthesisView summaries={summaries} entries={allEntries} />
+      <div className="notebook-grid min-h-[calc(100dvh-48px)]">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-5 sm:py-8 pb-12">
+          <SynthesisView summaries={summaries} entries={allEntries} />
+        </div>
       </div>
     </>
   );

@@ -215,9 +215,10 @@ input[type="date"] {
 .journal-prose h2 { font-size: 15px; font-weight: 700; }
 .journal-prose h3 { font-size: 15px; font-weight: 600; }
 
-/* Writing editor: lock every descendant tight to the grid */
+/* Writing editor: lock every descendant tight to the grid.
+   Fills whatever container height it's given (page chrome controls the height). */
 .journal-prose .ProseMirror {
-  min-height: 75vh;
+  min-height: 100%;
 }
 .journal-prose .ProseMirror * {
   margin: 0 !important;

@@ -79,7 +79,7 @@ export default function SynthesisView({ summaries, entries }: Props) {
             <div className="h-4 bg-border rounded w-[92%]" />
           </div>
         ) : synthesis ? (
-          <div className="font-sans text-sm leading-[1.9] whitespace-pre-wrap text-text">
+          <div className="journal-prose whitespace-pre-wrap text-text">
             {synthesis}
           </div>
         ) : null}

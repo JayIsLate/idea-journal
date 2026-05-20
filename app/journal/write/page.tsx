@@ -53,38 +53,43 @@ export default function JournalWritePage() {
     <>
       <SiteNav activeSection="write" contextLabel={today} wordCount={wordCount} />
 
-      <div className="w-full max-w-[1200px] mx-auto px-5 sm:px-10 pt-6 pb-24 md:pb-20">
-        <div className="mb-4 flex items-center justify-between">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-secondary">
-            New Entry
-          </span>
-          <span className="font-mono text-[9px] uppercase tracking-wider text-secondary">
-            {today}
-          </span>
-        </div>
-
-        <div className="journal-prose notebook-grid -mx-2 px-2 rounded-md">
-          <WritingEditor
-            tabKey="journal-write"
-            content=""
-            onUpdate={setBody}
-            placeholder="Start writing..."
-          />
-        </div>
-
-        <div className="mt-5 flex items-center justify-end gap-3">
-          {error && (
-            <span className="font-mono text-[10px] text-red-600 truncate max-w-[240px]">
-              {error}
+      {/* Lock to exact viewport height. Subtract top nav (48px) and the layout's
+          main padding-bottom (pb-20=80 on mobile, pb-12=48 on desktop). The mobile
+          tab bar / desktop bottom bar sit within that padding-bottom region. */}
+      <div className="flex flex-col h-[calc(100dvh-48px-80px)] md:h-[calc(100dvh-48px-48px)]">
+        <div className="w-full max-w-[1200px] mx-auto px-5 sm:px-10 flex flex-col flex-1 min-h-0 pt-5 pb-4">
+          <div className="mb-3 flex items-center justify-between shrink-0">
+            <span className="font-mono text-[9px] uppercase tracking-wider text-secondary">
+              New Entry
             </span>
-          )}
-          <button
-            onClick={handleSubmit}
-            disabled={submitting || !body.trim()}
-            className="font-mono text-[11px] uppercase tracking-wider px-4 py-2.5 rounded-md bg-text text-card hover:bg-accent transition-colors disabled:opacity-40 disabled:hover:bg-text"
-          >
-            {submitting ? "Submitting…" : "Submit →"}
-          </button>
+            <span className="font-mono text-[9px] uppercase tracking-wider text-secondary">
+              {today}
+            </span>
+          </div>
+
+          <div className="journal-prose notebook-grid -mx-2 px-2 flex-1 min-h-0 overflow-y-auto">
+            <WritingEditor
+              tabKey="journal-write"
+              content=""
+              onUpdate={setBody}
+              placeholder="Start writing..."
+            />
+          </div>
+
+          <div className="mt-3 flex items-center justify-end gap-3 shrink-0">
+            {error && (
+              <span className="font-mono text-[10px] text-red-600 truncate max-w-[240px]">
+                {error}
+              </span>
+            )}
+            <button
+              onClick={handleSubmit}
+              disabled={submitting || !body.trim()}
+              className="font-mono text-[11px] uppercase tracking-wider px-4 py-2.5 rounded-md bg-text text-card hover:bg-accent transition-colors disabled:opacity-40 disabled:hover:bg-text"
+            >
+              {submitting ? "Submitting…" : "Submit →"}
+            </button>
+          </div>
         </div>
       </div>
     </>
