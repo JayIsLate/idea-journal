@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Editor } from "@tiptap/core";
 import SiteNav from "@/components/SiteNav";
 import WritingEditor from "@/components/writing/WritingEditor";
 
@@ -15,6 +16,19 @@ export default function JournalWritePage() {
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const editorRef = useRef<Editor | null>(null);
+
+  // Click anywhere in the dot-grid area to focus the editor at the end.
+  // Clicks that land inside the editor's contenteditable use normal cursor
+  // placement instead.
+  function focusEditorOnEmptyClick(e: React.MouseEvent<HTMLDivElement>) {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const target = e.target as HTMLElement;
+    const dom = editor.view.dom;
+    if (dom === target || dom.contains(target)) return;
+    editor.commands.focus("end");
+  }
 
   // Lock body scroll on this page — the editor itself handles overflow internally.
   useEffect(() => {
@@ -76,12 +90,18 @@ export default function JournalWritePage() {
             </span>
           </div>
 
-          <div className="journal-prose notebook-grid -mx-2 px-2 flex-1 min-h-0 overflow-y-auto">
+          <div
+            onClick={focusEditorOnEmptyClick}
+            className="journal-prose notebook-grid -mx-2 px-2 flex-1 min-h-0 overflow-y-auto cursor-text"
+          >
             <WritingEditor
               tabKey="journal-write"
               content=""
               onUpdate={setBody}
               placeholder="Start writing..."
+              onEditorReady={(editor) => {
+                editorRef.current = editor;
+              }}
             />
           </div>
 
