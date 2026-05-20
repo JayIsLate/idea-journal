@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import EntryCard from "@/components/EntryCard";
+import SiteNav from "@/components/SiteNav";
 import { Entry } from "@/lib/types";
 import { useProcessing } from "@/lib/processing-context";
 
@@ -43,7 +44,9 @@ export default function HomePage() {
   }, [status, fetchEntries]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <>
+      <SiteNav activeSection="stream" contextLabel={`${entries.length} ENTRIES`} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="font-mono text-xl sm:text-2xl font-bold">Stream</h1>
@@ -87,6 +90,7 @@ export default function HomePage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

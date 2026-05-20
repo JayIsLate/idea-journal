@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Entry } from "@/lib/types";
 import IdeaCard from "@/components/IdeaCard";
+import SiteNav from "@/components/SiteNav";
 import Link from "next/link";
 
 export default function DayPage() {
@@ -61,27 +62,33 @@ export default function DayPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="animate-pulse space-y-4 py-8">
-          <div className="h-4 bg-border rounded w-1/3" />
-          <div className="h-8 bg-border rounded w-2/3" />
-          <div className="h-4 bg-border rounded w-full" />
+      <>
+        <SiteNav activeSection="stream" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-border rounded w-1/3" />
+            <div className="h-8 bg-border rounded w-2/3" />
+            <div className="h-4 bg-border rounded w-full" />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!entry) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <p className="text-secondary font-mono text-sm">Entry not found.</p>
-        <Link
-          href="/"
-          className="text-accent text-sm font-mono mt-3 inline-block active:opacity-70"
-        >
-          &larr; Back to stream
-        </Link>
-      </div>
+      <>
+        <SiteNav activeSection="stream" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
+          <p className="text-secondary font-mono text-sm">Entry not found.</p>
+          <Link
+            href="/"
+            className="text-accent text-sm font-mono mt-3 inline-block active:opacity-70"
+          >
+            &larr; Back to stream
+          </Link>
+        </div>
+      </>
     );
   }
 
@@ -94,7 +101,9 @@ export default function DayPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+    <>
+      <SiteNav activeSection="stream" contextLabel={`#${String(entry.day_number).padStart(3, "0")} — ${entry.date}`} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8 pb-12">
       <div className="flex items-center justify-between mb-5">
         <Link
           href="/"
@@ -213,6 +222,7 @@ export default function DayPage() {
           </p>
         </div>
       </details>
-    </div>
+      </div>
+    </>
   );
 }

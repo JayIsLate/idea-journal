@@ -189,6 +189,55 @@ input[type="date"] {
   opacity: 0.8;
 }
 
+/* Leuchtturm1917-style dot grid for the writeable area.
+   Grid spacing equals the editor line-height; dots fall at line boundaries
+   with a clear gap above descenders and below ascenders. */
+.notebook-grid {
+  background-image: radial-gradient(circle, rgba(26, 26, 26, 0.3) 1px, transparent 1.3px);
+  background-size: 28px 28px;
+  /* Each radial-gradient dot is at the CENTER of its 28x28 tile.
+     With tile origin at (0, 14), dot centers land at y=28, 56, 84... — right at
+     the boundary between text lines (line-height 28). Asymmetric clearance:
+     ~6.5px above each cap, ~3.5px below each descender. */
+  background-position: 0 14px;
+}
+
+/* Journal section — typography that locks to the 28px notebook dot grid */
+.journal-prose {
+  line-height: 28px;
+  font-size: 15px;
+  margin: 0;
+}
+.journal-prose * {
+  line-height: 28px;
+}
+.journal-prose h1 { font-size: 15px; font-weight: 800; }
+.journal-prose h2 { font-size: 15px; font-weight: 700; }
+.journal-prose h3 { font-size: 15px; font-weight: 600; }
+
+/* Writing editor: lock every descendant tight to the grid */
+.journal-prose .ProseMirror {
+  min-height: 75vh;
+}
+.journal-prose .ProseMirror * {
+  margin: 0 !important;
+  line-height: 28px !important;
+}
+
+/* Read-view: one blank dot-row between blocks */
+.journal-prose:not(.ProseMirror) > p,
+.journal-prose:not(.ProseMirror) > h1,
+.journal-prose:not(.ProseMirror) > h2,
+.journal-prose:not(.ProseMirror) > h3,
+.journal-prose:not(.ProseMirror) > ul,
+.journal-prose:not(.ProseMirror) > ol,
+.journal-prose:not(.ProseMirror) > blockquote {
+  margin: 0 0 28px 0;
+}
+.journal-prose:not(.ProseMirror) > *:last-child {
+  margin-bottom: 0;
+}
+
 /* Focus mode */
 .focus-mode .tiptap-editor > * {
   opacity: 0.25;

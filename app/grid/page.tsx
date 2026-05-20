@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import GridTile from "@/components/GridTile";
+import SiteNav from "@/components/SiteNav";
 import { Entry } from "@/lib/types";
 import { useProcessing } from "@/lib/processing-context";
 
@@ -35,7 +36,9 @@ export default function GridPage() {
   }, [status, fetchEntries]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <>
+      <SiteNav activeSection="grid" contextLabel={`${entries.length} ENTRIES`} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="font-mono text-xl sm:text-2xl font-bold">Grid</h1>
@@ -71,6 +74,7 @@ export default function GridPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

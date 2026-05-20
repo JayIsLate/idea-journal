@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import Nav from "@/components/Nav";
 import ProcessingBar from "@/components/ProcessingBar";
 import { ProcessingProvider } from "@/lib/processing-context";
 import "./globals.css";
@@ -49,8 +48,7 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrains.variable} font-sans bg-bg min-h-screen`}
       >
         <ProcessingProvider>
-          <Nav />
-          <main className="py-5 sm:py-8 pb-20">{children}</main>
+          <main className="pb-20 md:pb-12">{children}</main>
           <ProcessingBar />
         </ProcessingProvider>
       </body>

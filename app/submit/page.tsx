@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useProcessing } from "@/lib/processing-context";
+import SiteNav from "@/components/SiteNav";
 
 const PROMPTS = [
   "What would this look like if it were easy?",
@@ -54,9 +55,11 @@ export default function SubmitPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+    <>
+      <SiteNav activeSection="submit" />
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-5 sm:py-8 pb-12">
       <div className="mb-5">
-        <h1 className="font-mono text-xl sm:text-2xl font-bold">Submit</h1>
+        <h1 className="font-mono text-2xl sm:text-[26px] font-bold">Submit</h1>
         <p className="text-sm text-secondary mt-1">
           Paste a voice memo transcription to process
         </p>
@@ -64,7 +67,7 @@ export default function SubmitPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-mono text-secondary mb-1.5">
+          <label className="block font-mono text-[10px] uppercase tracking-wider text-secondary mb-1.5">
             Voice memo date
           </label>
           <input
@@ -88,7 +91,7 @@ export default function SubmitPage() {
         <button
           type="submit"
           disabled={status === "submitting" || !transcription.trim()}
-          className="w-full font-mono text-sm font-medium bg-accent text-white rounded-xl px-4 py-3.5 active:scale-[0.98] transition-all disabled:opacity-40 disabled:active:scale-100"
+          className="w-full font-mono text-sm font-medium uppercase tracking-wider bg-accent text-white rounded-xl px-4 h-[52px] active:scale-[0.98] transition-all disabled:opacity-40 disabled:active:scale-100"
         >
           {status === "submitting" ? "Processing..." : "Extract Ideas"}
         </button>
@@ -99,6 +102,7 @@ export default function SubmitPage() {
           &ldquo;{prompt}&rdquo;
         </p>
       )}
-    </div>
+      </div>
+    </>
   );
 }
