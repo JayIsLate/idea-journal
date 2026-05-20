@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Entry, Idea } from "@/lib/types";
 import { renderMarkdown } from "@/lib/markdown";
 import IdeasPanelContent from "@/components/journal/IdeasPanelContent";
 import IdeasFab from "@/components/journal/IdeasFab";
 import IdeasDrawer from "@/components/journal/IdeasDrawer";
-import HermesEntryPanel from "@/components/journal/HermesEntryPanel";
+import HermesEntryPanel, { type HermesPanelHandle } from "@/components/journal/HermesEntryPanel";
 
 interface StoredHighlight {
   id: string;
@@ -32,6 +32,24 @@ export default function EntryView({ entry }: Props) {
   const [summarizeError, setSummarizeError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const ideasCount = entry.ideas.length;
+  const hermesRef = useRef<HermesPanelHandle>(null);
+  const hermesSectionRef = useRef<HTMLDivElement>(null);
+  const [hermesState, setHermesState] = useState<{ loading: boolean; count: number }>({
+    loading: false,
+    count: entry.highlights.filter((h) => h.view === view).length,
+  });
+
+  function triggerHermes() {
+    if (hermesState.count > 0) {
+      hermesSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      hermesRef.current?.runFeedback();
+      // After kicking off, scroll into view so the loading state is visible
+      setTimeout(() => {
+        hermesSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }
 
   const unabridgedHtml = useMemo(() => renderMarkdown(entry.raw_transcription), [entry.raw_transcription]);
   const abridgedHtml = useMemo(() => renderMarkdown(summary), [summary]);
@@ -108,6 +126,17 @@ export default function EntryView({ entry }: Props) {
           >
             Abridged
           </button>
+          <button
+            onClick={triggerHermes}
+            disabled={hermesState.loading}
+            className="ml-auto font-mono text-[10px] uppercase tracking-wider pb-2 px-2 text-secondary hover:text-accent transition-colors disabled:opacity-40"
+          >
+            {hermesState.loading
+              ? "Reading…"
+              : hermesState.count > 0
+                ? `Hermes (${hermesState.count}) ↓`
+                : "Hermes →"}
+          </button>
         </div>
 
         <article className="pb-12">
@@ -153,12 +182,16 @@ export default function EntryView({ entry }: Props) {
             </>
           )}
 
-          <HermesEntryPanel
-            entryId={entry.id}
-            content={view === "abridged" ? summary : entry.raw_transcription}
-            view={view}
-            initialHighlights={entry.highlights}
-          />
+          <div ref={hermesSectionRef}>
+            <HermesEntryPanel
+              ref={hermesRef}
+              entryId={entry.id}
+              content={view === "abridged" ? summary : entry.raw_transcription}
+              view={view}
+              initialHighlights={entry.highlights}
+              onStateChange={setHermesState}
+            />
+          </div>
         </article>
       </div>
 

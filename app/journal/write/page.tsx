@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import WritingEditor from "@/components/writing/WritingEditor";
@@ -15,6 +15,15 @@ export default function JournalWritePage() {
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Lock body scroll on this page — the editor itself handles overflow internally.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
 
   const wordCount = useMemo(() => {
     const plain = body.replace(/[#*_>`\-[\]()]/g, " ");
@@ -76,16 +85,16 @@ export default function JournalWritePage() {
             />
           </div>
 
-          <div className="mt-3 flex items-center justify-end gap-3 shrink-0">
+          <div className="h-16 flex items-center justify-center gap-3 shrink-0 relative">
             {error && (
-              <span className="font-mono text-[10px] text-red-600 truncate max-w-[240px]">
+              <span className="font-mono text-[10px] text-red-600 truncate max-w-[240px] absolute right-0">
                 {error}
               </span>
             )}
             <button
               onClick={handleSubmit}
               disabled={submitting || !body.trim()}
-              className="font-mono text-[11px] uppercase tracking-wider px-4 py-2.5 rounded-md bg-text text-card hover:bg-accent transition-colors disabled:opacity-40 disabled:hover:bg-text"
+              className="font-mono text-[11px] uppercase tracking-wider px-5 py-2.5 rounded-md bg-text text-card hover:bg-accent transition-colors disabled:opacity-40 disabled:hover:bg-text"
             >
               {submitting ? "Submitting…" : "Submit →"}
             </button>

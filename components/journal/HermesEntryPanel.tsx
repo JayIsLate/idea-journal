@@ -1,8 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from "react";
 import HighlightPopover from "@/components/writing/HighlightPopover";
 import type { Highlight } from "@/lib/writing-types";
+
+export interface HermesPanelHandle {
+  runFeedback: () => void;
+  loading: boolean;
+  count: number;
+}
 
 interface StoredHighlight {
   id: string;
@@ -29,6 +41,7 @@ interface Props {
   content: string;
   view: "unabridged" | "abridged";
   initialHighlights: StoredHighlight[];
+  onStateChange?: (state: { loading: boolean; count: number }) => void;
 }
 
 interface ActivePopover {
@@ -36,12 +49,10 @@ interface ActivePopover {
   position: { x: number; y: number };
 }
 
-export default function HermesEntryPanel({
-  entryId,
-  content,
-  view,
-  initialHighlights,
-}: Props) {
+const HermesEntryPanel = forwardRef<HermesPanelHandle, Props>(function HermesEntryPanel(
+  { entryId, content, view, initialHighlights, onStateChange },
+  ref
+) {
   const [highlights, setHighlights] = useState<StoredHighlight[]>(
     initialHighlights.filter((h) => h.view === view)
   );
@@ -126,6 +137,21 @@ export default function HermesEntryPanel({
     });
   }
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      runFeedback,
+      loading,
+      count: highlights.length,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [loading, highlights.length]
+  );
+
+  useEffect(() => {
+    onStateChange?.({ loading, count: highlights.length });
+  }, [loading, highlights.length, onStateChange]);
+
   // Build text with highlight spans inline. We render content as a single
   // pre-wrap block (no markdown), which keeps substring offsets stable.
   const rendered = useMemo(() => {
@@ -187,7 +213,9 @@ export default function HermesEntryPanel({
       )}
     </div>
   );
-}
+});
+
+export default HermesEntryPanel;
 
 function renderWithHighlights(
   text: string,
