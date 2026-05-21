@@ -6,6 +6,8 @@ import type { Editor } from "@tiptap/core";
 import SiteNav from "@/components/SiteNav";
 import WritingEditor from "@/components/writing/WritingEditor";
 
+const DRAFT_STORAGE_KEY = "journal-write-draft-v1";
+
 export default function JournalWritePage() {
   const router = useRouter();
   const today = useMemo(() => {
@@ -17,6 +19,35 @@ export default function JournalWritePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<Editor | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  // Restore any in-progress draft from localStorage once the editor mounts.
+  function handleEditorReady(editor: Editor) {
+    editorRef.current = editor;
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved && saved.trim()) {
+        editor.commands.setContent(saved);
+        setBody(saved);
+      }
+    } catch {
+      /* localStorage may be disabled — fail silently */
+    }
+  }
+
+  // Autosave to localStorage on body change (debounced 400ms).
+  useEffect(() => {
+    if (!body) return;
+    const id = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, body);
+        setSavedAt(Date.now());
+      } catch {
+        /* quota or disabled — ignore */
+      }
+    }, 400);
+    return () => clearTimeout(id);
+  }, [body]);
 
   // Click anywhere in the dot-grid area to focus the editor at the end.
   // Clicks that land inside the editor's contenteditable use normal cursor
@@ -65,6 +96,12 @@ export default function JournalWritePage() {
         return;
       }
       const entry = await res.json();
+      // Successful submit — clear the draft so the next visit is fresh.
+      try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
       router.push(`/journal/${entry.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network error");
@@ -81,13 +118,14 @@ export default function JournalWritePage() {
           tab bar / desktop bottom bar sit within that padding-bottom region. */}
       <div className="flex flex-col h-[calc(100dvh-48px-80px)] md:h-[calc(100dvh-48px-48px)]">
         <div className="w-full max-w-[1200px] mx-auto px-5 sm:px-10 flex flex-col flex-1 min-h-0 pt-5 pb-4">
-          <div className="mb-3 flex items-center justify-between shrink-0">
+          <div className="mb-3 flex items-center justify-between gap-3 shrink-0">
             <span className="font-mono text-[9px] uppercase tracking-wider text-secondary">
               New Entry
             </span>
-            <span className="font-mono text-[9px] uppercase tracking-wider text-secondary">
-              {today}
-            </span>
+            <div className="flex items-center gap-3 font-mono text-[9px] uppercase tracking-wider text-secondary">
+              {savedAt && body.trim() && <span>Saved locally</span>}
+              <span>{today}</span>
+            </div>
           </div>
 
           <div
@@ -99,9 +137,7 @@ export default function JournalWritePage() {
               content=""
               onUpdate={setBody}
               placeholder="Start writing..."
-              onEditorReady={(editor) => {
-                editorRef.current = editor;
-              }}
+              onEditorReady={handleEditorReady}
             />
           </div>
 
