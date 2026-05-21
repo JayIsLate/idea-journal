@@ -9,6 +9,7 @@ import IdeasFab from "@/components/journal/IdeasFab";
 import IdeasDrawer from "@/components/journal/IdeasDrawer";
 import HermesEntryPanel, { type HermesPanelHandle } from "@/components/journal/HermesEntryPanel";
 import HermesReplyThread from "@/components/journal/HermesReplyThread";
+import ProgressIndicator from "@/components/journal/ProgressIndicator";
 import HighlightPopover from "@/components/writing/HighlightPopover";
 import type { Highlight, HighlightType } from "@/lib/writing-types";
 
@@ -31,6 +32,14 @@ interface StoredHighlight {
 interface Props {
   entry: Entry & { ideas: Idea[]; highlights: StoredHighlight[] };
 }
+
+const SUMMARY_PHASES = [
+  { until: 2.5, label: "Re-reading entry" },
+  { until: 6, label: "Drawing threads" },
+  { until: 11, label: "Composing summary" },
+  { until: 18, label: "Finalizing" },
+  { until: Infinity, label: "Hang tight" },
+];
 
 const TYPE_UNDERLINE: Record<string, string> = {
   question: "decoration-blue-400",
@@ -230,6 +239,10 @@ export default function EntryView({ entry }: Props) {
               has returned annotations for the current view. The plain-text
               span renderer is required for stable substring matching. */}
           <div ref={hermesAnchorRef}>
+            {view === "abridged" && summarizing && (
+              <ProgressIndicator phases={SUMMARY_PHASES} className="mb-4" />
+            )}
+
             {view === "abridged" && summarizing && !summary ? (
               <div className="animate-pulse space-y-2">
                 <div className="h-4 bg-border rounded w-full" />
@@ -244,7 +257,9 @@ export default function EntryView({ entry }: Props) {
               </div>
             ) : (
               <div
-                className="tiptap-editor journal-prose notebook-grid -mx-2 px-2"
+                className={`tiptap-editor journal-prose notebook-grid -mx-2 px-2 transition-opacity ${
+                  summarizing ? "opacity-40" : ""
+                }`}
                 dangerouslySetInnerHTML={{
                   __html: view === "abridged" ? abridgedHtml : unabridgedHtml,
                 }}
