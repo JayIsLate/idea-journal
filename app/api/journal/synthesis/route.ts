@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 
+export const maxDuration = 60;
+
 const SYSTEM_PROMPT = `You are synthesizing a collection of personal journal summaries into a single reflective analysis. Identify: recurring themes, evolving ideas, open threads, and notable patterns across entries. Write in flowing prose only — no bullet points, no headers, no lists. Three to four paragraphs. Be specific and direct. Do not summarize each entry individually.`;
 
 export async function POST(request: NextRequest) {

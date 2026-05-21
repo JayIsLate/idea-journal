@@ -3,6 +3,15 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import type { Entry } from "@/lib/types";
+import ProgressIndicator from "@/components/journal/ProgressIndicator";
+
+const SYNTHESIS_PHASES = [
+  { until: 3, label: "Re-reading entries" },
+  { until: 8, label: "Finding patterns" },
+  { until: 15, label: "Drawing threads" },
+  { until: 25, label: "Composing synthesis" },
+  { until: Infinity, label: "Hang tight" },
+];
 
 interface Props {
   summaries: string[];
@@ -71,6 +80,9 @@ export default function SynthesisView({ summaries, entries }: Props) {
       )}
 
       <section className="mb-10">
+        {loading && (
+          <ProgressIndicator phases={SYNTHESIS_PHASES} className="mb-4" />
+        )}
         {loading && !synthesis ? (
           <div className="animate-pulse space-y-2">
             <div className="h-4 bg-border rounded w-full" />
@@ -79,7 +91,11 @@ export default function SynthesisView({ summaries, entries }: Props) {
             <div className="h-4 bg-border rounded w-[92%]" />
           </div>
         ) : synthesis ? (
-          <div className="journal-prose whitespace-pre-wrap text-text">
+          <div
+            className={`journal-prose whitespace-pre-wrap text-text transition-opacity ${
+              loading ? "opacity-40" : ""
+            }`}
+          >
             {synthesis}
           </div>
         ) : null}

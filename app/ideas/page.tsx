@@ -83,7 +83,11 @@ export default function IdeasPage() {
 
   return (
     <>
-      <SiteNav activeSection="ideas" contextLabel={`${ideas.length} IDEAS`} />
+      <SiteNav
+        activeSection="ideas"
+        contextLabel={`${ideas.length} IDEAS`}
+        stat={{ count: filteredIdeas.length, singular: "idea", plural: "ideas" }}
+      />
       <div className="notebook-grid min-h-[calc(100dvh-48px)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8 pb-12">
       <div className="mb-5">
