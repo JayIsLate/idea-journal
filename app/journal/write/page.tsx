@@ -49,12 +49,13 @@ export default function JournalWritePage() {
     return () => clearTimeout(id);
   }, [body]);
 
-  // Click anywhere in the dot-grid area to focus the editor at the end.
-  // Clicks that land inside the editor's contenteditable use normal cursor
-  // placement instead.
+  // Click anywhere in the dot-grid area to focus the editor at the end —
+  // but only when the editor isn't already focused. If you're mid-edit, clicks
+  // on the wrapper padding shouldn't jump the cursor; they should be no-ops.
   function focusEditorOnEmptyClick(e: React.MouseEvent<HTMLDivElement>) {
     const editor = editorRef.current;
     if (!editor) return;
+    if (editor.isFocused) return;
     const target = e.target as HTMLElement;
     const dom = editor.view.dom;
     if (dom === target || dom.contains(target)) return;
