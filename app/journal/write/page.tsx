@@ -19,11 +19,18 @@ export default function JournalWritePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<Editor | null>(null);
+  const draftRestoredRef = useRef(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
-  // Restore any in-progress draft from localStorage once the editor mounts.
+  // Restore any in-progress draft from localStorage ONCE on first editor mount.
+  // The underlying WritingEditor calls onEditorReady from a useEffect that
+  // re-fires whenever the callback ref changes — without this guard, every
+  // parent re-render (e.g. on each keystroke) would re-run setContent and jump
+  // the cursor to the end.
   function handleEditorReady(editor: Editor) {
     editorRef.current = editor;
+    if (draftRestoredRef.current) return;
+    draftRestoredRef.current = true;
     try {
       const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
       if (saved && saved.trim()) {
