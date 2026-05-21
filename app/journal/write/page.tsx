@@ -122,7 +122,7 @@ export default function JournalWritePage() {
 
   return (
     <>
-      <SiteNav activeSection="write" contextLabel={today} wordCount={wordCount} />
+      <SiteNav activeSection="write" contextLabel={today} wordCount={wordCount} submitting={submitting} />
 
       {/* Lock to exact viewport height. Subtract top nav (48px) and the layout's
           main padding-bottom (pb-20=80 on mobile, pb-12=48 on desktop). The mobile

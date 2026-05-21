@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type SectionKey =
   | "write"
@@ -18,6 +18,7 @@ interface SiteNavProps {
   activeSection?: SectionKey;
   contextLabel?: string;
   wordCount?: number;
+  submitting?: boolean;
 }
 
 const sections: { key: Exclude<SectionKey, null>; num: string; label: string; href: string }[] = [
@@ -29,7 +30,7 @@ const sections: { key: Exclude<SectionKey, null>; num: string; label: string; hr
 
 const submitTab = { key: "submit" as const, num: "+", href: "/submit" };
 
-export default function SiteNav({ activeSection = null, contextLabel, wordCount }: SiteNavProps) {
+export default function SiteNav({ activeSection = null, contextLabel, wordCount, submitting = false }: SiteNavProps) {
   const pathname = usePathname();
 
   const resolvedActive: SectionKey =
@@ -113,13 +114,14 @@ export default function SiteNav({ activeSection = null, contextLabel, wordCount 
       </div>
 
       {/* Desktop bottom bar — accent colored, centered clock + word count */}
-      <DesktopBottomBar wordCount={wordCount} />
+      <DesktopBottomBar wordCount={wordCount} submitting={submitting} />
 
       {/* Mobile bottom tab bar */}
       <nav
         className="md:hidden fixed left-0 right-0 bottom-0 z-50 bg-card border-t border-border"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
+        {submitting && <MobileSubmitProgress />}
         <div className="grid grid-cols-5 h-14">
           {sections.map((s) => {
             const isActive = resolvedActive === s.key;
@@ -150,7 +152,7 @@ export default function SiteNav({ activeSection = null, contextLabel, wordCount 
   );
 }
 
-function DesktopBottomBar({ wordCount }: { wordCount?: number }) {
+function DesktopBottomBar({ wordCount, submitting }: { wordCount?: number; submitting?: boolean }) {
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -175,16 +177,76 @@ function DesktopBottomBar({ wordCount }: { wordCount?: number }) {
 
   return (
     <div
-      className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-10 bg-accent text-text items-center justify-center gap-4 px-6 font-mono text-[12px] uppercase tracking-wider font-medium"
+      className="hidden md:flex fixed bottom-0 left-0 right-0 z-40 h-10 bg-accent text-text items-center justify-center gap-4 px-6 font-mono text-[12px] uppercase tracking-wider font-medium overflow-hidden"
       suppressHydrationWarning
     >
-      <span>{time}</span>
-      {wordsLabel && (
+      {submitting ? (
+        <SubmitProgress />
+      ) : (
         <>
-          <span aria-hidden="true">·</span>
-          <span>{wordsLabel}</span>
+          <span>{time}</span>
+          {wordsLabel && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{wordsLabel}</span>
+            </>
+          )}
         </>
       )}
+    </div>
+  );
+}
+
+// Submission progress: cycles through phase labels on a timer and shows
+// elapsed seconds. The /api/submit endpoint doesn't stream phase events,
+// so we approximate stages based on the typical Claude-call timings
+// (title generation ~2-4s, idea extraction ~3-6s). The honest signal here
+// is the elapsed counter and the animated stripe — those tell the user
+// the request is still alive even when it takes 10s+.
+const PHASES: { until: number; label: string }[] = [
+  { until: 2.5, label: "Analyzing" },
+  { until: 6, label: "Drawing themes" },
+  { until: 11, label: "Extracting ideas" },
+  { until: 18, label: "Finalizing" },
+  { until: Infinity, label: "Hang tight" },
+];
+
+function SubmitProgress() {
+  const [elapsed, setElapsed] = useState(0);
+  const startRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    startRef.current = Date.now();
+    const id = setInterval(() => {
+      setElapsed((Date.now() - startRef.current) / 1000);
+    }, 200);
+    return () => clearInterval(id);
+  }, []);
+
+  const phase = PHASES.find((p) => elapsed < p.until)?.label ?? "Submitting";
+  const seconds = Math.floor(elapsed);
+
+  return (
+    <>
+      {/* Animated stripe overlay across the full bar */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none submit-progress-stripes opacity-30"
+      />
+      <span className="relative">{phase}…</span>
+      <span aria-hidden="true" className="relative">·</span>
+      <span className="relative tabular-nums">{String(seconds).padStart(2, "0")}s</span>
+    </>
+  );
+}
+
+function MobileSubmitProgress() {
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute -top-1 left-0 right-0 h-1 bg-accent/30 overflow-hidden"
+    >
+      <span className="block h-full submit-progress-stripes" />
     </div>
   );
 }

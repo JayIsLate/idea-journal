@@ -75,6 +75,25 @@ input[type="date"] {
   animation: progress 15s ease-out forwards;
 }
 
+/* Submit progress: diagonal stripes that scroll left across the bottom bar.
+   Used as a continuous activity indicator while /api/submit is in flight. */
+@keyframes submit-stripe-slide {
+  from { background-position: 0 0; }
+  to { background-position: -40px 0; }
+}
+
+.submit-progress-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 0, 0, 0.18) 0,
+    rgba(0, 0, 0, 0.18) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  background-size: 40px 40px;
+  animation: submit-stripe-slide 0.8s linear infinite;
+}
+
 /* TipTap Editor */
 .tiptap-editor {
   min-height: 60vh;
