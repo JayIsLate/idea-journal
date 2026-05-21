@@ -14,10 +14,17 @@ export type SectionKey =
   | "grid"
   | null;
 
+export interface BottomBarStat {
+  count: number;
+  singular: string;
+  plural?: string;
+}
+
 interface SiteNavProps {
   activeSection?: SectionKey;
   contextLabel?: string;
   wordCount?: number;
+  stat?: BottomBarStat;
   submitting?: boolean;
 }
 
@@ -30,7 +37,19 @@ const sections: { key: Exclude<SectionKey, null>; num: string; label: string; hr
 
 const submitTab = { key: "submit" as const, num: "+", href: "/submit" };
 
-export default function SiteNav({ activeSection = null, contextLabel, wordCount, submitting = false }: SiteNavProps) {
+export default function SiteNav({
+  activeSection = null,
+  contextLabel,
+  wordCount,
+  stat,
+  submitting = false,
+}: SiteNavProps) {
+  // Back-compat: wordCount is a shortcut for the Write page's stat slot.
+  const resolvedStat: BottomBarStat | undefined =
+    stat ??
+    (typeof wordCount === "number"
+      ? { count: wordCount, singular: "word", plural: "words" }
+      : undefined);
   const pathname = usePathname();
 
   const resolvedActive: SectionKey =
@@ -113,8 +132,8 @@ export default function SiteNav({ activeSection = null, contextLabel, wordCount,
         </div>
       </div>
 
-      {/* Desktop bottom bar — accent colored, centered clock + word count */}
-      <DesktopBottomBar wordCount={wordCount} submitting={submitting} />
+      {/* Desktop bottom bar — accent colored, centered clock + stat */}
+      <DesktopBottomBar stat={resolvedStat} submitting={submitting} />
 
       {/* Mobile bottom tab bar */}
       <nav
@@ -152,7 +171,7 @@ export default function SiteNav({ activeSection = null, contextLabel, wordCount,
   );
 }
 
-function DesktopBottomBar({ wordCount, submitting }: { wordCount?: number; submitting?: boolean }) {
+function DesktopBottomBar({ stat, submitting }: { stat?: BottomBarStat; submitting?: boolean }) {
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -170,10 +189,9 @@ function DesktopBottomBar({ wordCount, submitting }: { wordCount?: number; submi
       })
     : "--:--:--";
 
-  const wordsLabel =
-    typeof wordCount === "number"
-      ? `${wordCount} ${wordCount === 1 ? "word" : "words"}`
-      : null;
+  const statLabel = stat
+    ? `${stat.count} ${stat.count === 1 ? stat.singular : stat.plural || stat.singular + "s"}`
+    : null;
 
   return (
     <div
@@ -185,10 +203,10 @@ function DesktopBottomBar({ wordCount, submitting }: { wordCount?: number; submi
       ) : (
         <>
           <span>{time}</span>
-          {wordsLabel && (
+          {statLabel && (
             <>
               <span aria-hidden="true">·</span>
-              <span>{wordsLabel}</span>
+              <span>{statLabel}</span>
             </>
           )}
         </>

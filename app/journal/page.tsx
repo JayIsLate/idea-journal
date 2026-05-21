@@ -25,7 +25,11 @@ export default async function ArchivePage() {
 
   return (
     <>
-      <SiteNav activeSection="archive" contextLabel={`${entries.length} ENTRIES`} />
+      <SiteNav
+        activeSection="archive"
+        contextLabel={`${entries.length} ENTRIES`}
+        stat={{ count: entries.length, singular: "entry", plural: "entries" }}
+      />
       <div className="notebook-grid min-h-[calc(100dvh-48px)]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-5 sm:py-8 pb-12">
           <div className="mb-6">

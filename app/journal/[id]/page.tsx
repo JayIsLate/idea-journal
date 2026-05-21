@@ -54,7 +54,11 @@ export default async function JournalEntryPage({ params }: { params: { id: strin
 
   return (
     <>
-      <SiteNav activeSection="archive" contextLabel={contextLabel} />
+      <SiteNav
+        activeSection="archive"
+        contextLabel={contextLabel}
+        stat={{ count: entry.ideas.length, singular: "idea", plural: "ideas" }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-5">
         <div className="font-mono text-[10px] uppercase tracking-wider text-secondary mb-4">
           <Link href="/journal" className="hover:text-text transition-colors">
