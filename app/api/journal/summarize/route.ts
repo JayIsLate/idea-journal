@@ -2,7 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabase } from "@/lib/supabase";
 
-const SYSTEM_PROMPT = `You are distilling a personal journal entry into a concise summary. Extract: the core ideas, any decisions or intentions, recurring themes, and notable observations. Write in clean prose. Be direct and specific. No filler, no affirmations. Max 150 words.`;
+const SYSTEM_PROMPT = `You are condensing a personal journal entry into an abridged version that the writer can re-read at a glance. Do not flatten the entry into a one-paragraph gloss — preserve the actual substance: specific ideas, names, projects, tensions, decisions, questions the writer is wrestling with, and concrete details.
+
+Structure your output as short labeled sections separated by blank lines. Use these headings (in this order, skip any that don't apply):
+
+**Threads** — the distinct topics or ideas the writer worked through. One short paragraph or 2–4 bullets per thread, using the writer's own concepts and language (not abstractions).
+
+**Tensions / Open questions** — anything the writer circled back to, doubted, or hasn't resolved. Quote or paraphrase the actual question.
+
+**Decisions / Intentions** — concrete commitments, plans, or next steps the writer named.
+
+**Observations** — sharp lines, framings, or self-reflections worth keeping.
+
+Style: direct, specific, in the writer's voice (lowercase mono-style is fine if the entry is). Aim for roughly 200–400 words depending on entry length — long enough to be a real abridgement, short enough to scan. No filler, no preamble like "this entry is about", no affirmations.`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +48,7 @@ export async function POST(request: NextRequest) {
     const client = new Anthropic();
     const message = await client.messages.create({
       model: "claude-sonnet-4-5-20250929",
-      max_tokens: 600,
+      max_tokens: 1500,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: raw }],
     });

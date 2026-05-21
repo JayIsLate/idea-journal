@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import type { Idea } from "@/lib/types";
 
 const CATEGORIES = ["product", "content", "business", "personal", "technical", "creative"] as const;
@@ -154,16 +155,18 @@ export default function IdeasPanelContent({
 
         <ul className="space-y-2">
           {saved.map((idea) => (
-            <li
-              key={idea.id}
-              className="flex items-start justify-between gap-2 text-[12px]"
-            >
-              <span className="font-mono text-secondary line-through opacity-70 flex-1">
-                {idea.title}
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-wider text-secondary shrink-0">
-                ✓ Saved
-              </span>
+            <li key={idea.id}>
+              <Link
+                href={`/write/${idea.id}`}
+                className="flex items-start justify-between gap-2 text-[12px] hover:opacity-70 transition-opacity group"
+              >
+                <span className="font-mono text-secondary line-through opacity-70 flex-1 group-hover:text-accent group-hover:opacity-100">
+                  {idea.title}
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-secondary shrink-0 group-hover:text-accent">
+                  ✓ Saved
+                </span>
+              </Link>
             </li>
           ))}
           {suggestions.map((s) => {
