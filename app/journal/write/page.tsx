@@ -19,27 +19,30 @@ export default function JournalWritePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<Editor | null>(null);
-  const draftRestoredRef = useRef(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
-  // Restore any in-progress draft from localStorage ONCE on first editor mount.
-  // The underlying WritingEditor calls onEditorReady from a useEffect that
-  // re-fires whenever the callback ref changes — without this guard, every
-  // parent re-render (e.g. on each keystroke) would re-run setContent and jump
-  // the cursor to the end.
-  function handleEditorReady(editor: Editor) {
-    editorRef.current = editor;
-    if (draftRestoredRef.current) return;
-    draftRestoredRef.current = true;
+  // Resolve the initial content from localStorage BEFORE mounting WritingEditor.
+  // The editor's own useEffect sets content from the `content` prop on first
+  // mount and would overwrite anything we tried to restore via onEditorReady.
+  // Keeping draftLoaded null until we've read localStorage lets us pass the
+  // saved draft in as the editor's initial content, which the editor will then
+  // apply via its normal content-init path.
+  const [draftLoaded, setDraftLoaded] = useState<{ content: string } | null>(null);
+
+  useEffect(() => {
+    let initial = "";
     try {
       const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-      if (saved && saved.trim()) {
-        editor.commands.setContent(saved);
-        setBody(saved);
-      }
+      if (saved && saved.trim()) initial = saved;
     } catch {
       /* localStorage may be disabled — fail silently */
     }
+    setDraftLoaded({ content: initial });
+    if (initial) setBody(initial);
+  }, []);
+
+  function handleEditorReady(editor: Editor) {
+    editorRef.current = editor;
   }
 
   // Autosave to localStorage on body change (debounced 400ms).
@@ -140,13 +143,15 @@ export default function JournalWritePage() {
             onClick={focusEditorOnEmptyClick}
             className="journal-prose notebook-grid -mx-2 px-2 flex-1 min-h-0 overflow-y-auto cursor-text"
           >
-            <WritingEditor
-              tabKey="journal-write"
-              content=""
-              onUpdate={setBody}
-              placeholder="Start writing..."
-              onEditorReady={handleEditorReady}
-            />
+            {draftLoaded && (
+              <WritingEditor
+                tabKey="journal-write"
+                content={draftLoaded.content}
+                onUpdate={setBody}
+                placeholder="Start writing..."
+                onEditorReady={handleEditorReady}
+              />
+            )}
           </div>
 
           <div className="h-16 flex items-center justify-center gap-3 shrink-0 relative">
