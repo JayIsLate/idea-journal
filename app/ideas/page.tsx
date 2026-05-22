@@ -73,12 +73,19 @@ export default function IdeasPage() {
       return true;
     })
     .sort((a, b) => {
-      if (!sortByRecent) return 0;
-      const tA = writingTimestamps[a.id] || "";
-      const tB = writingTimestamps[b.id] || "";
-      if (tA && !tB) return -1;
-      if (!tA && tB) return 1;
-      return tB.localeCompare(tA);
+      if (sortByRecent) {
+        // "Recent" mode = sort by writing-notes activity (existing behavior).
+        const tA = writingTimestamps[a.id] || "";
+        const tB = writingTimestamps[b.id] || "";
+        if (tA && !tB) return -1;
+        if (!tA && tB) return 1;
+        return tB.localeCompare(tA);
+      }
+      // Default mode = sort by last_activity_at desc so ideas that just got
+      // contributed to from a new entry bump to the top.
+      const aActive = a.last_activity_at || a.updated_at || a.created_at || "";
+      const bActive = b.last_activity_at || b.updated_at || b.created_at || "";
+      return bActive.localeCompare(aActive);
     });
 
   return (

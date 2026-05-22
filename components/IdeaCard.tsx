@@ -142,8 +142,13 @@ export default function IdeaCard({
             <span className={`w-1.5 h-1.5 rounded-full ${statusColors[status] || statusColors.raw}`} />
             {status}
           </span>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-secondary">
-            {Math.round(idea.confidence * 100)}%
+          <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-secondary">
+            {(idea.contributions?.length ?? 0) > 1 && (
+              <span className="text-accent" title={`Drawn from ${idea.contributions!.length} entries`}>
+                ↩ {idea.contributions!.length}
+              </span>
+            )}
+            <span>{Math.round(idea.confidence * 100)}%</span>
           </span>
         </div>
         {hasWriting && (
@@ -192,6 +197,15 @@ export default function IdeaCard({
               <p className="text-sm text-secondary leading-relaxed">
                 {idea.description}
               </p>
+
+              {(idea.contributions?.length ?? 0) > 1 && (
+                <p className="font-mono text-[10px] uppercase tracking-wider text-accent">
+                  ↩ Drawn from {idea.contributions!.length} entries · last updated{" "}
+                  {idea.last_activity_at
+                    ? new Date(idea.last_activity_at).toLocaleDateString()
+                    : ""}
+                </p>
+              )}
 
               <div className="flex items-center gap-2">
                 <StatusBadge status={status} />
@@ -334,6 +348,15 @@ export default function IdeaCard({
       <p className="text-sm text-secondary leading-relaxed mb-3">
         {idea.description}
       </p>
+
+      {(idea.contributions?.length ?? 0) > 1 && (
+        <p className="font-mono text-[10px] uppercase tracking-wider text-accent mb-3">
+          ↩ Drawn from {idea.contributions!.length} entries · last updated{" "}
+          {idea.last_activity_at
+            ? new Date(idea.last_activity_at).toLocaleDateString()
+            : ""}
+        </p>
+      )}
 
       <div className="flex items-center gap-2 flex-wrap mb-3">
         <StatusBadge status={status} />

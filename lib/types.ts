@@ -8,6 +8,12 @@ export type IdeaCategory =
 
 export type IdeaStatus = "raw" | "developing" | "ready" | "shipped" | "archived";
 
+export interface IdeaContribution {
+  entry_id: string;
+  date: string;
+  snippet: string;
+}
+
 export interface Idea {
   id: string;
   entry_id: string;
@@ -20,6 +26,8 @@ export interface Idea {
   tags: string[];
   ai_suggestions: string[];
   word_count?: number;
+  last_activity_at?: string;
+  contributions?: IdeaContribution[];
   created_at: string;
   updated_at: string;
 }
@@ -51,5 +59,10 @@ export interface ClaudeResponse {
     action_items: string[];
     tags: string[];
     ai_suggestions: string[];
+    // Smart-clustering fields populated when existing ideas are provided.
+    // mergeIntoIdeaId is the id of an existing idea this extracted idea
+    // should merge into; null/undefined means create a new idea.
+    mergeIntoIdeaId?: string | null;
+    mergeConfidence?: number;
   }[];
 }
