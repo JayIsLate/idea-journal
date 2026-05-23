@@ -111,8 +111,14 @@ export async function insertNewIdea({
     .single();
 
   if (error) {
-    // Surface insert errors at the caller — caller already does error handling
-    throw error;
+    // Wrap so the message string actually carries the Postgres detail when
+    // the caller serializes via err.message. Supabase errors aren't Error
+    // instances by default — without this wrap, downstream catches that
+    // check `err instanceof Error` would fall through to a generic message
+    // and the real cause (missing column, constraint, etc.) gets lost.
+    throw new Error(
+      `Insert into ideas failed: ${error.message}${error.details ? ` (${error.details})` : ""}${error.hint ? ` [hint: ${error.hint}]` : ""}`
+    );
   }
   return data as Idea | null;
 }
