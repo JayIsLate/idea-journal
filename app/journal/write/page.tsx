@@ -156,7 +156,10 @@ export default function JournalWritePage() {
 
           <div className="h-16 flex items-center justify-center gap-3 shrink-0 relative">
             {error && (
-              <span className="font-mono text-[10px] text-red-600 truncate max-w-[240px] absolute right-0">
+              <span
+                className="font-mono text-[10px] text-red-600 max-w-[400px] absolute right-0 leading-tight"
+                title={error}
+              >
                 {error}
               </span>
             )}
