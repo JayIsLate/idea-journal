@@ -135,6 +135,24 @@ export default function JournalWritePage() {
             </span>
             <div className="flex items-center gap-3 font-mono text-[9px] uppercase tracking-wider text-secondary">
               {savedAt && body.trim() && <span>Saved locally</span>}
+              {body.trim() && (
+                <button
+                  onClick={() => {
+                    if (!confirm("Clear the current draft? This can't be undone.")) return;
+                    try {
+                      localStorage.removeItem(DRAFT_STORAGE_KEY);
+                    } catch {
+                      /* ignore */
+                    }
+                    editorRef.current?.commands.clearContent();
+                    setBody("");
+                    setSavedAt(null);
+                  }}
+                  className="hover:text-accent transition-colors"
+                >
+                  Clear draft
+                </button>
+              )}
               <span>{today}</span>
             </div>
           </div>
