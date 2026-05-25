@@ -71,6 +71,24 @@ export default function IdeaCard({
   const [copied, setCopied] = useState(false);
   const [planError, setPlanError] = useState(false);
 
+  // Items added by merges within the last NEW_WINDOW_DAYS get accent-colored
+  // so the writer can see at a glance what's fresh on a long-running idea.
+  const NEW_WINDOW_DAYS = 7;
+  const newlyAdded = (() => {
+    const cutoff = Date.now() - NEW_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    const actions = new Set<string>();
+    const tags = new Set<string>();
+    for (const c of idea.contributions || []) {
+      const ts = new Date(c.date).getTime();
+      if (isNaN(ts) || ts < cutoff) continue;
+      (c.added_action_items || []).forEach((a) => actions.add(a.toLowerCase()));
+      (c.added_tags || []).forEach((t) => tags.add(t.toLowerCase()));
+    }
+    return { actions, tags };
+  })();
+  const isNewAction = (item: string) => newlyAdded.actions.has(item.toLowerCase());
+  const isNewTag = (item: string) => newlyAdded.tags.has(item.toLowerCase());
+
   async function updateStatus(newStatus: IdeaStatus) {
     setUpdating(true);
     try {
@@ -227,12 +245,20 @@ export default function IdeaCard({
                 <div>
                   <p className="label mb-2">Action Items</p>
                   <ul className="space-y-1.5">
-                    {idea.action_items.map((item, i) => (
-                      <li key={i} className="text-sm text-secondary flex gap-2 leading-relaxed">
-                        <span className="text-accent shrink-0">-</span>
-                        {item}
-                      </li>
-                    ))}
+                    {idea.action_items.map((item, i) => {
+                      const fresh = isNewAction(item);
+                      return (
+                        <li
+                          key={i}
+                          className={`text-sm flex gap-2 leading-relaxed ${
+                            fresh ? "text-accent" : "text-secondary"
+                          }`}
+                        >
+                          <span className="text-accent shrink-0">{fresh ? "+" : "-"}</span>
+                          {item}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}
@@ -260,14 +286,21 @@ export default function IdeaCard({
 
               {idea.tags.length > 0 && (
                 <div className="flex gap-1.5 flex-wrap">
-                  {idea.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-xs font-mono text-secondary bg-bg px-1.5 py-0.5 rounded-md"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
+                  {idea.tags.map((tag) => {
+                    const fresh = isNewTag(tag);
+                    return (
+                      <span
+                        key={tag}
+                        className={`text-xs font-mono px-1.5 py-0.5 rounded-md ${
+                          fresh
+                            ? "text-accent bg-accent/10"
+                            : "text-secondary bg-bg"
+                        }`}
+                      >
+                        #{tag}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
 
@@ -381,12 +414,20 @@ export default function IdeaCard({
         <div className="mb-3">
           <p className="label mb-1.5">Action Items</p>
           <ul className="space-y-1.5">
-            {idea.action_items.map((item, i) => (
-              <li key={i} className="text-sm text-secondary flex gap-2 leading-relaxed">
-                <span className="text-accent shrink-0">-</span>
-                {item}
-              </li>
-            ))}
+            {idea.action_items.map((item, i) => {
+              const fresh = isNewAction(item);
+              return (
+                <li
+                  key={i}
+                  className={`text-sm flex gap-2 leading-relaxed ${
+                    fresh ? "text-accent" : "text-secondary"
+                  }`}
+                >
+                  <span className="text-accent shrink-0">{fresh ? "+" : "-"}</span>
+                  {item}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -425,14 +466,19 @@ export default function IdeaCard({
 
       {idea.tags.length > 0 && (
         <div className="flex gap-1.5 flex-wrap mt-3">
-          {idea.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs font-mono text-secondary bg-bg px-1.5 py-0.5 rounded-md"
-            >
-              #{tag}
-            </span>
-          ))}
+          {idea.tags.map((tag) => {
+            const fresh = isNewTag(tag);
+            return (
+              <span
+                key={tag}
+                className={`text-xs font-mono px-1.5 py-0.5 rounded-md ${
+                  fresh ? "text-accent bg-accent/10" : "text-secondary bg-bg"
+                }`}
+              >
+                #{tag}
+              </span>
+            );
+          })}
         </div>
       )}
 

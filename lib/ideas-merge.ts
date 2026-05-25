@@ -42,7 +42,8 @@ export async function mergeIntoExistingIdea({
   if (!existing) return null;
 
   const existingTags: string[] = existing.tags || [];
-  const newTags = Array.from(new Set([...existingTags, ...extracted.tags]));
+  const novelTags = extracted.tags.filter((t) => !existingTags.includes(t));
+  const newTags = [...existingTags, ...novelTags];
 
   const existingActions: string[] = existing.action_items || [];
   const novelActions = extracted.action_items.filter(
@@ -52,9 +53,16 @@ export async function mergeIntoExistingIdea({
 
   const existingContributions: IdeaContribution[] = existing.contributions || [];
   const snippet = extracted.description.slice(0, 200);
+  // Record what this specific merge added so the UI can mark fresh items.
   const nextContributions: IdeaContribution[] = [
     ...existingContributions,
-    { entry_id: entryId, date: entryDate, snippet },
+    {
+      entry_id: entryId,
+      date: entryDate,
+      snippet,
+      added_action_items: novelActions,
+      added_tags: novelTags,
+    },
   ];
 
   const { data: updated } = await supabase

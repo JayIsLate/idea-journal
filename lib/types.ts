@@ -12,6 +12,11 @@ export interface IdeaContribution {
   entry_id: string;
   date: string;
   snippet: string;
+  // Populated on merge contributions (not on origin). Lets the UI mark which
+  // action_items / tags were newly added to an idea so the writer can see
+  // what's fresh at a glance.
+  added_action_items?: string[];
+  added_tags?: string[];
 }
 
 export interface Idea {
