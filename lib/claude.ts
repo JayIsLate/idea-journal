@@ -121,14 +121,38 @@ export async function processTranscription(
     parsed.mood = "reflective";
   }
 
-  // Ensure categories match DB constraint
+  // Defensively coerce string[] fields. The tool schema asks for arrays but
+  // smaller models occasionally return a comma-separated string instead,
+  // which then fails Postgres' text[] coercion with a 'malformed array
+  // literal' error at insert time. Normalize once at the boundary so the
+  // rest of the code (and Supabase) never sees a string here.
+  parsed.tags = normalizeStringArray(parsed.tags);
+
+  // Ensure categories match DB constraint + normalize all string-array fields
   const validCategories = ["product", "content", "business", "personal", "technical", "creative"];
   parsed.ideas = parsed.ideas.map((idea) => ({
     ...idea,
     category: validCategories.includes(idea.category) ? idea.category : "personal",
+    tags: normalizeStringArray(idea.tags),
+    action_items: normalizeStringArray(idea.action_items),
+    ai_suggestions: normalizeStringArray(idea.ai_suggestions),
   }));
 
   return parsed;
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((v): v is string => typeof v === "string" && v.trim().length > 0);
+  }
+  if (typeof value === "string") {
+    // Split on commas/semicolons. Strip surrounding quotes/whitespace.
+    return value
+      .split(/[,;]/)
+      .map((s) => s.trim().replace(/^['"]|['"]$/g, ""))
+      .filter(Boolean);
+  }
+  return [];
 }
 
 const SOFTWARE_PLAN_PROMPT = `You are a technical project planner. Given an idea, generate a Claude Code-ready prompt that someone can paste directly into Claude Code to build it.
