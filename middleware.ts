@@ -47,6 +47,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!user && !isPublicPath(pathname)) {
+    // API routes get a JSON 401 (nicer for fetch callers, e.g. an expired
+    // session mid-use); pages get redirected to /login.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
