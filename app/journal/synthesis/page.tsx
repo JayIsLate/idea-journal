@@ -1,6 +1,6 @@
 import SiteNav from "@/components/SiteNav";
 import SynthesisView from "./SynthesisView";
-import { getSupabase } from "@/lib/supabase";
+import { getServerSupabase } from "@/lib/supabase/server";
 import type { Entry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ interface EntryWithSummary {
 }
 
 async function fetchEntriesWithSummary(): Promise<EntryWithSummary[]> {
-  const supabase = getSupabase();
+  const supabase = getServerSupabase();
   // 30-day window for synthesis input
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 30);
@@ -37,7 +37,7 @@ async function fetchEntriesWithSummary(): Promise<EntryWithSummary[]> {
 }
 
 async function fetchLatestSynthesis(): Promise<SynthesisRow | null> {
-  const supabase = getSupabase();
+  const supabase = getServerSupabase();
   const { data } = await supabase
     .from("syntheses")
     .select("*")
@@ -48,7 +48,7 @@ async function fetchLatestSynthesis(): Promise<SynthesisRow | null> {
 }
 
 async function fetchAllEntriesForIndex(): Promise<Entry[]> {
-  const supabase = getSupabase();
+  const supabase = getServerSupabase();
   const { data } = await supabase
     .from("entries")
     .select("id, day_number, date, title")

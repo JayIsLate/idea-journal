@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
+import { getUserApiKey } from "@/lib/byok";
 import { processTranscription } from "@/lib/claude";
 import {
   MERGE_CONFIDENCE_THRESHOLD,
@@ -23,24 +24,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const supabase = getSupabase();
+    const { supabase, user } = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const apiKey = await getUserApiKey(supabase, user.id);
     const entryDate = date || new Date().toISOString().split("T")[0];
 
     // Load currently active ideas so Claude can decide whether each new
     // extracted idea continues an existing project or is genuinely new.
-    const existingForMatch = await loadActiveIdeasForMatching(supabase);
+    const existingForMatch = await loadActiveIdeasForMatching(supabase, user.id);
 
     // Process transcription through Claude (extraction + clustering decisions)
-    const processed = await processTranscription(transcription, existingForMatch);
-
-    // Always create a new entry
-    const { data: latest } = await supabase
-      .from("entries")
-      .select("day_number")
-      .order("day_number", { ascending: false })
-      .limit(1);
-    const dayNum =
-      latest && latest.length > 0 ? latest[0].day_number + 1 : 1;
+    const processed = await processTranscription(transcription, existingForMatch, apiKey);
 
     const ALLOWED_MOODS = [
       "energized",
@@ -57,23 +53,48 @@ export async function POST(request: NextRequest) {
         ? moodOverride
         : processed.mood;
 
-    const { data: entry, error: entryError } = await supabase
-      .from("entries")
-      .insert({
-        day_number: dayNum,
-        date: entryDate,
-        raw_transcription: transcription,
-        title: titleOverride?.trim() ? titleOverride.trim() : processed.title,
-        summary: processed.summary,
-        mood: finalMood,
-        tags: processed.tags,
-      })
-      .select()
-      .single();
+    // day_number is unique per user. Two concurrent submits can read the same
+    // max and collide on the (user_id, day_number) index, so recompute + retry
+    // on the unique-violation code (23505).
+    let entry: { id: string; [k: string]: unknown } | null = null;
+    let entryError: { code?: string; message: string } | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data: latest } = await supabase
+        .from("entries")
+        .select("day_number")
+        .eq("user_id", user.id)
+        .order("day_number", { ascending: false })
+        .limit(1);
+      const dayNum =
+        latest && latest.length > 0 ? latest[0].day_number + 1 : 1;
 
-    if (entryError) {
+      const result = await supabase
+        .from("entries")
+        .insert({
+          user_id: user.id,
+          day_number: dayNum,
+          date: entryDate,
+          raw_transcription: transcription,
+          title: titleOverride?.trim() ? titleOverride.trim() : processed.title,
+          summary: processed.summary,
+          mood: finalMood,
+          tags: processed.tags,
+        })
+        .select()
+        .single();
+
+      if (!result.error) {
+        entry = result.data;
+        entryError = null;
+        break;
+      }
+      entryError = result.error;
+      if (result.error.code !== "23505") break; // not a day_number race — give up
+    }
+
+    if (entryError || !entry) {
       return NextResponse.json(
-        { error: entryError.message },
+        { error: entryError?.message ?? "Failed to create entry" },
         { status: 500 }
       );
     }
@@ -117,6 +138,7 @@ export async function POST(request: NextRequest) {
           extracted: idea,
           entryId: entry.id,
           entryDate,
+          userId: user.id,
         });
         if (inserted) {
           resultIdeas.push(inserted);

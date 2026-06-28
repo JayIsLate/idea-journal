@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { getOwnerUserId } from '../lib/supabase/admin';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -6,10 +7,16 @@ const supabase = createClient(
 );
 
 async function run() {
-  await supabase.from('ideas').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-  const { error } = await supabase.from('entries').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  // Scope deletes to the owner so this can never wipe another user's data.
+  const ownerId = await getOwnerUserId();
+  if (!ownerId) {
+    console.error('Owner not found — sign in with Google first.');
+    process.exit(1);
+  }
+  await supabase.from('ideas').delete().eq('user_id', ownerId);
+  const { error } = await supabase.from('entries').delete().eq('user_id', ownerId);
   if (error) console.error(error);
-  else console.log('All entries and ideas cleared');
+  else console.log("All of the owner's entries and ideas cleared");
 }
 
 run();

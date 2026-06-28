@@ -1,7 +1,7 @@
 import SiteNav from "@/components/SiteNav";
 import EntryView from "./EntryView";
 import Link from "next/link";
-import { getSupabase } from "@/lib/supabase";
+import { getServerSupabase } from "@/lib/supabase/server";
 import type { Entry, Idea } from "@/lib/types";
 import { notFound } from "next/navigation";
 
@@ -24,7 +24,7 @@ async function fetchEntry(
 ): Promise<
   (Entry & { ideas: Idea[]; highlights: StoredHighlight[] }) | null
 > {
-  const supabase = getSupabase();
+  const supabase = getServerSupabase();
   const { data: entry } = await supabase
     .from("entries")
     .select("*")

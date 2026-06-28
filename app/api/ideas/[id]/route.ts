@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const body = await request.json();
 
   const allowedFields = ["status"];

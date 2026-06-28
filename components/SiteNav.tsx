@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import type { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 
 export type SectionKey =
   | "write"
@@ -110,11 +112,14 @@ export default function SiteNav({
             </Link>
           </div>
 
-          {contextLabel ? (
-            <span className="font-mono text-[11px] uppercase tracking-wider text-secondary whitespace-nowrap">
-              {contextLabel}
-            </span>
-          ) : null}
+          <div className="flex items-center gap-4">
+            {contextLabel ? (
+              <span className="font-mono text-[11px] uppercase tracking-wider text-secondary whitespace-nowrap">
+                {contextLabel}
+              </span>
+            ) : null}
+            <AccountMenu />
+          </div>
         </div>
       </nav>
 
@@ -124,11 +129,14 @@ export default function SiteNav({
           <Link href="/journal" className="font-mono text-sm font-bold tracking-tight uppercase">
             IDEA LOG<span className="text-accent">·</span>
           </Link>
-          {contextLabel ? (
-            <span className="font-mono text-[10px] uppercase tracking-wider text-secondary truncate">
-              {contextLabel}
-            </span>
-          ) : null}
+          <div className="flex items-center gap-3 min-w-0">
+            {contextLabel ? (
+              <span className="font-mono text-[10px] uppercase tracking-wider text-secondary truncate">
+                {contextLabel}
+              </span>
+            ) : null}
+            <AccountMenu />
+          </div>
         </div>
       </div>
 
@@ -265,6 +273,73 @@ function MobileSubmitProgress() {
       className="absolute -top-1 left-0 right-0 h-1 bg-accent/30 overflow-hidden"
     >
       <span className="block h-full submit-progress-stripes" />
+    </div>
+  );
+}
+
+// Account control: avatar/initial button that opens a small menu with a link
+// to Settings and a sign-out action. Reads the user from the browser client so
+// it works on every page that renders SiteNav without prop threading.
+function AccountMenu() {
+  const [user, setUser] = useState<User | null>(null);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  async function signOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  }
+
+  if (!user) return null;
+
+  const name =
+    (user.user_metadata?.full_name as string | undefined) ?? user.email ?? "";
+  const initial = (name || "?").charAt(0).toUpperCase();
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Account"
+        className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card font-mono text-[11px] uppercase text-secondary hover:border-accent hover:text-accent transition-colors"
+      >
+        {initial}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-9 z-50 w-44 rounded-xl border border-border bg-card shadow-lg py-1">
+          <div className="px-3 py-2 border-b border-border">
+            <p className="font-mono text-[11px] text-text truncate">{name}</p>
+          </div>
+          <Link
+            href="/settings"
+            onClick={() => setOpen(false)}
+            className="block px-3 py-2 font-mono text-[11px] uppercase tracking-wider text-secondary hover:text-text"
+          >
+            Settings
+          </Link>
+          <button
+            onClick={signOut}
+            className="block w-full text-left px-3 py-2 font-mono text-[11px] uppercase tracking-wider text-secondary hover:text-accent"
+          >
+            Sign out
+          </button>
+        </div>
+      )}
     </div>
   );
 }

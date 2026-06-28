@@ -44,6 +44,12 @@ export interface Entry {
   raw_transcription: string;
   title: string;
   summary: string;
+  // Rich, structured "abridged" version shown on the entry's Abridged tab.
+  // Distinct from `summary` (the short 2-3 sentence blurb used on cards).
+  abridged?: string | null;
+  // True when content was added after the abridged summary was generated, so
+  // the Abridged tab can offer a "Regenerate" button.
+  abridged_stale?: boolean;
   mood: string;
   tags: string[];
   ideas?: Idea[];

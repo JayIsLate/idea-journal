@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
 
 const CATEGORIES = ["product", "content", "business", "personal", "technical", "creative"];
 
@@ -21,11 +21,15 @@ export async function POST(request: NextRequest) {
 
     const safeCategory = CATEGORIES.includes(category) ? category : "personal";
 
-    const supabase = getSupabase();
+    const { supabase, user } = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const { data, error } = await supabase
       .from("ideas")
       .insert({
         entry_id: entryId,
+        user_id: user.id,
         title,
         description: description || "",
         category: safeCategory,

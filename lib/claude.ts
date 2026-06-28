@@ -85,9 +85,10 @@ function buildLibrarySection(existing: ExistingIdeaForMatch[]): string {
 
 export async function processTranscription(
   transcription: string,
-  existingIdeas: ExistingIdeaForMatch[] = []
+  existingIdeas: ExistingIdeaForMatch[] = [],
+  apiKey?: string
 ): Promise<ClaudeResponse> {
-  const client = new Anthropic();
+  const client = new Anthropic({ apiKey });
 
   const systemPrompt =
     existingIdeas.length > 0
@@ -179,14 +180,17 @@ Format as clean markdown. Be specific, practical, and motivating.`;
 
 const SOFTWARE_CATEGORIES = ["product", "technical"];
 
-export async function generateIdeaPlan(idea: {
-  title: string;
-  description: string;
-  category: string;
-  action_items?: string[];
-  tags?: string[];
-}): Promise<string> {
-  const client = new Anthropic();
+export async function generateIdeaPlan(
+  idea: {
+    title: string;
+    description: string;
+    category: string;
+    action_items?: string[];
+    tags?: string[];
+  },
+  apiKey?: string
+): Promise<string> {
+  const client = new Anthropic({ apiKey });
   const isSoftware = SOFTWARE_CATEGORIES.includes(idea.category);
 
   const userMessage = [

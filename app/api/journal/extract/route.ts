@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
+import { getUserApiKey } from "@/lib/byok";
 
 const SYSTEM_PROMPT = `You are extracting discrete ideas from a personal journal entry. Use the suggest_ideas tool. Extract 2–5 ideas maximum. Only include genuinely distinct ideas, not observations or reflections. Each title is 5 words max. Each description is one sentence.`;
 
@@ -49,7 +50,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabase();
+    const { supabase, user } = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const apiKey = await getUserApiKey(supabase, user.id);
 
     const { data: existing } = await supabase
       .from("ideas")
@@ -60,7 +65,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ saved: existing, suggestions: [] });
     }
 
-    const client = new Anthropic();
+    const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 1000,

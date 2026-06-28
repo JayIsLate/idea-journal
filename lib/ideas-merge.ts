@@ -85,6 +85,7 @@ interface InsertNewArgs {
   extracted: ExtractedIdea;
   entryId: string;
   entryDate: string;
+  userId: string;
 }
 
 export async function insertNewIdea({
@@ -92,6 +93,7 @@ export async function insertNewIdea({
   extracted,
   entryId,
   entryDate,
+  userId,
 }: InsertNewArgs): Promise<Idea | null> {
   const snippet = extracted.description.slice(0, 200);
   const originContribution: IdeaContribution = {
@@ -104,6 +106,7 @@ export async function insertNewIdea({
     .from("ideas")
     .insert({
       entry_id: entryId,
+      user_id: userId,
       title: extracted.title,
       description: extracted.description,
       category: extracted.category,
@@ -135,11 +138,13 @@ export async function insertNewIdea({
 // We filter out archived/shipped because the writer is done with those —
 // merging into them is rarely what's intended.
 export async function loadActiveIdeasForMatching(
-  supabase: SupabaseClient
+  supabase: SupabaseClient,
+  userId: string
 ): Promise<{ id: string; title: string; description: string; tags: string[]; category: string }[]> {
   const { data } = await supabase
     .from("ideas")
     .select("id, title, description, tags, category, status")
+    .eq("user_id", userId)
     .in("status", ["raw", "developing", "ready"]);
   return (data || []).map((d) => ({
     id: d.id,

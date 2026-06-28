@@ -66,8 +66,9 @@ const TOOL: Anthropic.Tool = {
 export async function getEntryFeedback(
   content: string,
   view: EntryView,
+  apiKey?: string,
 ): Promise<Highlight[]> {
-  const client = new Anthropic();
+  const client = new Anthropic({ apiKey });
   const flatText = stripMarkdown(content);
 
   const message = await client.messages.create({

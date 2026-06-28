@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
+import { getUserApiKey } from "@/lib/byok";
 
 export const maxDuration = 60;
 
@@ -20,10 +21,14 @@ interface StoredHighlight {
   conversation?: ConversationMessage[];
 }
 
-const SYSTEM_PROMPT = `You are Hermes — a reader the writer trusts to push back on their journal entries. The writer left an inline annotation on a passage of their own writing and is now replying to your feedback. Continue the conversation: answer the question, weigh their reasoning, probe further when useful. Stay grounded in the specific passage. No throat-clearing, no "great point" — get straight to the substance. 2–4 short paragraphs max.`;
+const SYSTEM_PROMPT = `You are a thoughtful reader the writer trusts to push back on their journal entries. The writer left an inline annotation on a passage of their own writing and is now replying to your feedback. Continue the conversation: answer the question, weigh their reasoning, probe further when useful. Stay grounded in the specific passage. No throat-clearing, no "great point" — get straight to the substance. 2–4 short paragraphs max. Do not refer to yourself by a name.`;
 
 export async function POST(request: NextRequest) {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+  const apiKey = await getUserApiKey(supabase, user.id);
   const { entryId, highlightId, message } = (await request.json()) as {
     entryId: string;
     highlightId: string;
@@ -41,7 +46,7 @@ export async function POST(request: NextRequest) {
   // original passage and any prior conversation on this highlight.
   const { data: entry } = await supabase
     .from("entries")
-    .select("raw_transcription, summary, highlights")
+    .select("raw_transcription, summary, abridged, highlights")
     .eq("id", entryId)
     .single();
 
@@ -60,7 +65,9 @@ export async function POST(request: NextRequest) {
   }
 
   const fullText =
-    target.view === "abridged" ? entry.summary || "" : entry.raw_transcription || "";
+    target.view === "abridged"
+      ? entry.abridged || entry.summary || ""
+      : entry.raw_transcription || "";
   const priorConversation = target.conversation || [];
 
   const userMessage: ConversationMessage = {
@@ -97,7 +104,7 @@ export async function POST(request: NextRequest) {
     { role: "user", content: message },
   ];
 
-  const client = new Anthropic();
+  const client = new Anthropic({ apiKey });
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

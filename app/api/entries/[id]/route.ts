@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -9,7 +9,10 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = getSupabase();
+    const { supabase, user } = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const { data: entry, error } = await supabase
       .from("entries")

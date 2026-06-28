@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
 import { DEFAULT_PAGES } from "@/lib/writing-types";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { ideaId: string } }
 ) {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { data, error } = await supabase
     .from("idea_writing")
@@ -20,6 +23,7 @@ export async function GET(
       .from("idea_writing")
       .insert({
         idea_id: params.ideaId,
+        user_id: user.id,
         pages: DEFAULT_PAGES,
         active_page: "summary",
         highlights: [],
@@ -49,7 +53,10 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { ideaId: string } }
 ) {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const body = await request.json();
 
   const updates: Record<string, unknown> = {};

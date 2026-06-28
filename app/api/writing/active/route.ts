@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
 
 /** Returns idea IDs that have writing records with non-empty content, plus timestamps */
 export async function GET() {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return NextResponse.json({ ids: [], timestamps: {} }, { status: 401 });
+  }
 
   const { data, error } = await supabase
     .from("idea_writing")

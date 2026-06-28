@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
 
 export async function POST(
   request: NextRequest,
@@ -11,7 +11,10 @@ export async function POST(
       return NextResponse.json({ error: "tag is required" }, { status: 400 });
     }
 
-    const supabase = getSupabase();
+    const { supabase, user } = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const { data: entry, error: fetchErr } = await supabase
       .from("entries")
       .select("tags")

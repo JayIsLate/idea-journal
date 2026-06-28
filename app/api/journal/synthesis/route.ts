@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
+import { getUserApiKey } from "@/lib/byok";
 
 export const maxDuration = 60;
 
@@ -16,7 +17,10 @@ interface SynthesisRow {
 }
 
 export async function GET() {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { data, error } = await supabase
     .from("syntheses")
     .select("*")
@@ -40,8 +44,12 @@ export async function POST(request: NextRequest) {
       priorEntryIds?: string[];
     };
 
-    const supabase = getSupabase();
-    const client = new Anthropic();
+    const { supabase, user } = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const apiKey = await getUserApiKey(supabase, user.id);
+    const client = new Anthropic({ apiKey });
     const mode = body.mode || "full";
 
     if (mode === "incremental") {
@@ -78,7 +86,7 @@ export async function POST(request: NextRequest) {
 
       const { data: inserted } = await supabase
         .from("syntheses")
-        .insert({ synthesis, entry_ids: allEntryIds })
+        .insert({ synthesis, entry_ids: allEntryIds, user_id: user.id })
         .select()
         .single();
 
@@ -115,7 +123,7 @@ export async function POST(request: NextRequest) {
 
     const { data: inserted } = await supabase
       .from("syntheses")
-      .insert({ synthesis, entry_ids: entryIds })
+      .insert({ synthesis, entry_ids: entryIds, user_id: user.id })
       .select()
       .single();
 

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
+import { getUserApiKey } from "@/lib/byok";
 import { getEntryFeedback, type EntryView } from "@/lib/entry-feedback";
 
 export const maxDuration = 60;
@@ -14,7 +15,11 @@ interface StoredHighlight {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+  const apiKey = await getUserApiKey(supabase, user.id);
   const body = await request.json();
   const { entryId, content, view } = body as {
     entryId: string;
@@ -32,7 +37,7 @@ export async function POST(request: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const highlights = await getEntryFeedback(content, view);
+        const highlights = await getEntryFeedback(content, view, apiKey);
 
         const tagged: StoredHighlight[] = highlights.map((h) => ({
           id: h.id,
@@ -87,7 +92,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
   const { entryId, highlightId } = (await request.json()) as {
     entryId: string;
     highlightId: string;

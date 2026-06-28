@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateIdeaPlan } from "@/lib/claude";
+import { requireUser } from "@/lib/supabase/server";
+import { getUserApiKey } from "@/lib/byok";
 
 export const maxDuration = 30;
 
@@ -8,6 +10,12 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { supabase, user } = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const apiKey = await getUserApiKey(supabase, user.id);
+
     const body = await request.json();
     const { title, description, category, action_items, tags } = body;
 
@@ -18,13 +26,16 @@ export async function POST(
       );
     }
 
-    const plan = await generateIdeaPlan({
-      title,
-      description,
-      category,
-      action_items,
-      tags,
-    });
+    const plan = await generateIdeaPlan(
+      {
+        title,
+        description,
+        category,
+        action_items,
+        tags,
+      },
+      apiKey
+    );
 
     return NextResponse.json({ plan });
   } catch (error) {

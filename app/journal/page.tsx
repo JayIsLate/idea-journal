@@ -1,13 +1,13 @@
 import SiteNav from "@/components/SiteNav";
 import ArchiveCard from "@/components/ArchiveCard";
-import { getSupabase } from "@/lib/supabase";
+import { getServerSupabase } from "@/lib/supabase/server";
 import type { Entry, Idea } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 async function fetchArchiveEntries(): Promise<Entry[]> {
-  const supabase = getSupabase();
+  const supabase = getServerSupabase();
   const { data: entries } = await supabase
     .from("entries")
     .select("*")

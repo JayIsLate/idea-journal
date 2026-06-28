@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
+import { getUserApiKey } from "@/lib/byok";
 import { getWritingFeedback } from "@/lib/writing-ai";
 import type { PageKey } from "@/lib/writing-types";
 
@@ -9,7 +10,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { ideaId: string } }
 ) {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+  const apiKey = await getUserApiKey(supabase, user.id);
   const body = await request.json();
   const { content, pageKey, summaryContent } = body as {
     content: string;
@@ -72,7 +77,8 @@ export async function POST(
             tags: idea.tags,
           },
           priorSamples.length > 0 ? priorSamples : undefined,
-          summaryContent
+          summaryContent,
+          apiKey
         );
 
         // Tag highlights with the current page key

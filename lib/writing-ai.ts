@@ -39,9 +39,10 @@ export async function getWritingFeedback(
   content: string,
   ideaContext: IdeaContext,
   priorWritings?: string[],
-  summaryContent?: string
+  summaryContent?: string,
+  apiKey?: string
 ): Promise<Highlight[]> {
-  const client = new Anthropic();
+  const client = new Anthropic({ apiKey });
   const flatText = stripMarkdown(content);
 
   const systemParts = [
@@ -193,9 +194,10 @@ export async function streamChatResponse(
   ideaContext: IdeaContext,
   onTextDelta: (text: string) => void,
   priorWritings?: string[],
-  summaryContent?: string
+  summaryContent?: string,
+  apiKey?: string
 ): Promise<string> {
-  const client = new Anthropic();
+  const client = new Anthropic({ apiKey });
 
   const systemParts = [
     "You are a helpful writing assistant. The user is developing an idea through writing.",

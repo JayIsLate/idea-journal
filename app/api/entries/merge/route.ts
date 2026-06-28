@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const supabase = getSupabase();
+    const { supabase, user } = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Fetch both entries
     const [{ data: target }, { data: source }] = await Promise.all([
@@ -39,13 +42,15 @@ export async function POST(request: NextRequest) {
       new Set([...target.tags, ...source.tags])
     );
 
-    // Update target entry with merged content
+    // Update target entry with merged content. Mark the abridged summary stale
+    // so the entry view offers a Regenerate button (content just changed).
     const { error: updateError } = await supabase
       .from("entries")
       .update({
         raw_transcription: combinedTranscription,
         summary: combinedSummary,
         tags: combinedTags,
+        abridged_stale: true,
       })
       .eq("id", targetId);
 

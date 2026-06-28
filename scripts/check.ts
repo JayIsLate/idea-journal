@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { getOwnerUserId } from '../lib/supabase/admin';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -6,9 +7,16 @@ const supabase = createClient(
 );
 
 async function check() {
+  const ownerId = await getOwnerUserId();
+  if (!ownerId) {
+    console.log('Owner not found — sign in with Google first.');
+    return;
+  }
+
   const { data: entries } = await supabase
     .from('entries')
     .select('id, title, day_number, mood, created_at, ideas(id)')
+    .eq('user_id', ownerId)
     .order('created_at', { ascending: false });
 
   if (!entries || entries.length === 0) {

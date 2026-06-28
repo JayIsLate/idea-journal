@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
+import { getUserApiKey } from "@/lib/byok";
 import { streamChatResponse } from "@/lib/writing-ai";
 import type { ChatMessage } from "@/lib/writing-types";
 
@@ -9,7 +10,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { ideaId: string } }
 ) {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const { data, error } = await supabase
     .from("writing_conversations")
@@ -33,7 +37,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { ideaId: string } }
 ) {
-  const supabase = getSupabase();
+  const { supabase, user } = await requireUser();
+  if (!user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+  const apiKey = await getUserApiKey(supabase, user.id);
   const body = await request.json();
   const { message, currentContent, summaryContent } = body as {
     message: string;
@@ -118,7 +126,8 @@ export async function POST(
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           },
           priorSamples.length > 0 ? priorSamples : undefined,
-          summaryContent
+          summaryContent,
+          apiKey
         );
 
         // Save conversation to DB
@@ -137,6 +146,7 @@ export async function POST(
         } else {
           await supabase.from("writing_conversations").insert({
             idea_id: params.ideaId,
+            user_id: user.id,
             messages: updatedMessages,
           });
         }

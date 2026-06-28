@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { getSupabase } from "@/lib/supabase";
+import { requireUser } from "@/lib/supabase/server";
+import { getUserApiKey } from "@/lib/byok";
 
 const SYSTEM_PROMPT = `You are condensing a personal journal entry into an abridged version that the writer can re-read at a glance. Do not flatten the entry into a one-paragraph gloss — preserve the actual substance: specific ideas, names, projects, tensions, decisions, questions the writer is wrestling with, and concrete details.
 
@@ -31,21 +32,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = getSupabase();
+    const { supabase, user } = await requireUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const apiKey = await getUserApiKey(supabase, user.id);
 
     if (!force) {
       const { data: existing } = await supabase
         .from("entries")
-        .select("summary")
+        .select("abridged")
         .eq("id", entryId)
         .single();
 
-      if (existing?.summary && existing.summary.trim()) {
-        return NextResponse.json({ summary: existing.summary, cached: true });
+      if (existing?.abridged && existing.abridged.trim()) {
+        return NextResponse.json({ summary: existing.abridged, cached: true });
       }
     }
 
-    const client = new Anthropic();
+    const client = new Anthropic({ apiKey });
     const message = await client.messages.create({
       model: "claude-sonnet-4-5-20250929",
       max_tokens: 1500,
@@ -63,7 +68,13 @@ export async function POST(request: NextRequest) {
 
     const summary = textBlock.text.trim();
 
-    await supabase.from("entries").update({ summary }).eq("id", entryId);
+    // Store the rich version in `abridged`, leaving the short `summary`
+    // (used on cards + synthesis) untouched. Clear the stale flag — this
+    // summary now reflects the latest content.
+    await supabase
+      .from("entries")
+      .update({ abridged: summary, abridged_stale: false })
+      .eq("id", entryId);
 
     return NextResponse.json({ summary, cached: false });
   } catch (err: unknown) {
