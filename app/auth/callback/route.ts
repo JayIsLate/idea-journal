@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Invite gate: anyone not on the allowlist gets signed out immediately.
-  if (!isAllowed(user?.email)) {
+  if (!(await isAllowed(user?.email))) {
     await supabase.auth.signOut();
     return NextResponse.redirect(`${siteUrl}/login?error=not-invited`);
   }
